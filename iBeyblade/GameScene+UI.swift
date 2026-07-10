@@ -416,9 +416,7 @@ extension GameScene {
             roundedRect: CGRect(x: cx - 178, y: modeBottom, width: 356, height: modeTop - modeBottom),
             cornerWidth: 18, cornerHeight: 18, transform: nil
         )
-        // The biggest single gap on the screen: makes the two panels read as
-        // clearly separate groups instead of one dense block.
-        y -= 120
+        y -= 66
 
         let topTop = y + 30
         topSectionHeader?.position = CGPoint(x: cx, y: y)
@@ -444,7 +442,7 @@ extension GameScene {
         (buttons.first(where: { $0.id == "page-prev" })?.node as? SKShapeNode)?.position = CGPoint(x: cx - 44, y: y)
         pageNextButton?.position = CGPoint(x: cx + 44, y: y)
         for (i, dot) in pageDots.enumerated() {
-            dot.position = CGPoint(x: cx - 6 + CGFloat(i) * 12, y: y)
+            dot.position = CGPoint(x: cx - 11 + CGFloat(i) * 22, y: y)
         }
         let topBottom = y - 30
         topPanel?.path = CGPath(
