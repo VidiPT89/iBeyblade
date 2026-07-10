@@ -160,6 +160,15 @@ extension GameScene {
 
     // MARK: Menu
 
+    private func typeEmoji(_ type: TopType) -> String {
+        switch type {
+        case .attack: return "⚔️"
+        case .defense: return "🛡️"
+        case .stamina: return "⏱️"
+        case .balance: return "⚖️"
+        }
+    }
+
     func buildMenu() {
         let overlay = SKNode()
         overlay.zPosition = 100
@@ -169,10 +178,13 @@ extension GameScene {
         overlay.addChild(bg)
 
         let title = SKLabelNode(fontNamed: "Menlo-Bold")
-        title.fontSize = 28
+        title.fontSize = 32
         title.fontColor = SKColor(hex: "#ffd27a")
         overlay.addChild(title)
         menuTitleLabel = title
+        title.run(.repeatForever(.sequence([
+            .fadeAlpha(to: 0.82, duration: 1.4), .fadeAlpha(to: 1.0, duration: 1.4),
+        ])))
 
         let tagline = SKLabelNode(fontNamed: "Menlo")
         tagline.fontSize = 12
@@ -181,6 +193,34 @@ extension GameScene {
         tagline.preferredMaxLayoutWidth = 300
         overlay.addChild(tagline)
         menuTaglineLabel = tagline
+
+        let langHit = SKShapeNode(rectOf: CGSize(width: 56, height: 34), cornerRadius: 10)
+        langHit.strokeColor = SKColor(hex: "#7fa8ff")
+        langHit.lineWidth = 1.5
+        langHit.fillColor = SKColor(white: 1, alpha: 0.06)
+        let langLabel = SKLabelNode(fontNamed: "Menlo-Bold")
+        langLabel.fontSize = 13
+        langLabel.fontColor = .white
+        langLabel.verticalAlignmentMode = .center
+        langLabel.horizontalAlignmentMode = .center
+        overlay.addChild(langHit)
+        overlay.addChild(langLabel)
+        menuLangHit = langHit
+        menuLangLabel = langLabel
+        buttons.append(UIButton(node: langHit, id: "btn-lang"))
+
+        let modePanel = SKShapeNode()
+        modePanel.fillColor = SKColor(white: 1, alpha: 0.035)
+        modePanel.strokeColor = SKColor(hex: "#4d78ff").withAlphaComponent(0.45)
+        modePanel.lineWidth = 1
+        overlay.addChild(modePanel)
+        self.modePanel = modePanel
+
+        let modeHeader = SKLabelNode(fontNamed: "Menlo-Bold")
+        modeHeader.fontSize = 11
+        modeHeader.fontColor = SKColor(white: 1, alpha: 0.55)
+        overlay.addChild(modeHeader)
+        modeSectionHeader = modeHeader
 
         for mode in [MatchMode.vsCPU, .vsPlayer] {
             let bgBtn = SKShapeNode(rectOf: CGSize(width: 130, height: 32), cornerRadius: 8)
@@ -212,9 +252,16 @@ extension GameScene {
             buttons.append(UIButton(node: bgBtn, id: "diff-\(diff.rawValue)"))
         }
 
+        let topPanel = SKShapeNode()
+        topPanel.fillColor = SKColor(white: 1, alpha: 0.035)
+        topPanel.strokeColor = SKColor(hex: "#4d78ff").withAlphaComponent(0.45)
+        topPanel.lineWidth = 1
+        overlay.addChild(topPanel)
+        self.topPanel = topPanel
+
         let header = SKLabelNode(fontNamed: "Menlo-Bold")
-        header.fontSize = 12
-        header.fontColor = SKColor(white: 1, alpha: 0.8)
+        header.fontSize = 13
+        header.fontColor = SKColor(hex: "#ffd27a")
         overlay.addChild(header)
         topSectionHeader = header
 
@@ -269,6 +316,7 @@ extension GameScene {
         let start = SKShapeNode(rectOf: CGSize(width: 220, height: 50), cornerRadius: 12)
         start.fillColor = SKColor(hex: "#ffd27a")
         start.strokeColor = .clear
+        start.glowWidth = 4
         overlay.addChild(start)
         let startL = SKLabelNode(fontNamed: "Menlo-Bold")
         startL.fontSize = 15
@@ -278,6 +326,11 @@ extension GameScene {
         overlay.addChild(startL)
         startLabel = startL
         buttons.append(UIButton(node: start, id: "start-tap"))
+        let pulse = SKAction.repeatForever(.sequence([
+            .group([.scale(to: 1.035, duration: 0.7), .fadeAlpha(to: 0.88, duration: 0.7)]),
+            .group([.scale(to: 1.0, duration: 0.7), .fadeAlpha(to: 1.0, duration: 0.7)]),
+        ]))
+        start.run(pulse)
 
         let settingsBg = SKShapeNode(circleOfRadius: 20)
         settingsBg.strokeColor = SKColor(hex: "#4d78ff")
@@ -326,11 +379,19 @@ extension GameScene {
         guard let overlay = menuOverlay, let bg = overlay.children.first as? SKShapeNode else { return }
         bg.path = CGPath(rect: CGRect(x: 0, y: 0, width: size.width, height: size.height), transform: nil)
         let cx = size.width / 2
-        var y = size.height - topSafeInset - 60
+        var y = size.height - topSafeInset - 56
         menuTitleLabel?.position = CGPoint(x: cx, y: y)
-        y -= 36
+
+        menuLangHit?.position = CGPoint(x: size.width - 46, y: size.height - topSafeInset - 30)
+        menuLangLabel?.position = menuLangHit?.position ?? .zero
+
+        y -= 38
         menuTaglineLabel?.position = CGPoint(x: cx, y: y)
-        y -= 44
+        y -= 40
+
+        let modeTop = y + 24
+        modeSectionHeader?.position = CGPoint(x: cx, y: y)
+        y -= 32
 
         if let vsCPU = modeButtons[.vsCPU], let vsPlayer = modeButtons[.vsPlayer] {
             vsCPU.bg.position = CGPoint(x: cx - 68, y: y)
@@ -338,7 +399,7 @@ extension GameScene {
             vsPlayer.bg.position = CGPoint(x: cx + 68, y: y)
             vsPlayer.label.position = vsPlayer.bg.position
         }
-        y -= 46
+        y -= 48
 
         let diffs = Difficulty.allCases
         let diffSpacing: CGFloat = 96
@@ -349,9 +410,16 @@ extension GameScene {
             pair.bg.position = CGPoint(x: x, y: y)
             pair.label.position = CGPoint(x: x, y: y)
         }
-        y -= 40
+        let modeBottom = y - 24
+        modePanel?.path = CGPath(
+            roundedRect: CGRect(x: cx - 168, y: modeBottom, width: 336, height: modeTop - modeBottom),
+            cornerWidth: 18, cornerHeight: 18, transform: nil
+        )
+        y -= 56
+
+        let topTop = y + 22
         topSectionHeader?.position = CGPoint(x: cx, y: y)
-        y -= 40
+        y -= 50
 
         let cols = 2
         let cardW: CGFloat = 156
@@ -375,19 +443,24 @@ extension GameScene {
         for (i, dot) in pageDots.enumerated() {
             dot.position = CGPoint(x: cx - 6 + CGFloat(i) * 12, y: y)
         }
-        y -= 44
+        let topBottom = y - 26
+        topPanel?.path = CGPath(
+            roundedRect: CGRect(x: cx - 172, y: topBottom, width: 344, height: topTop - topBottom),
+            cornerWidth: 18, cornerHeight: 18, transform: nil
+        )
+        y -= 56
 
         guard let start = buttons.first(where: { $0.id == "start-tap" })?.node else { return }
-        start.position = CGPoint(x: cx, y: max(50 + bottomSafeInset, y))
+        start.position = CGPoint(x: cx, y: max(56 + bottomSafeInset, y))
         startLabel?.position = start.position
-        y = start.position.y - 46
+        y = start.position.y - 50
 
-        settingsButtonBg?.position = CGPoint(x: cx - 60, y: y)
-        settingsButtonLabel?.position = CGPoint(x: cx - 60, y: y)
-        helpButtonBg?.position = CGPoint(x: cx, y: y)
-        helpButtonLabel?.position = CGPoint(x: cx, y: y)
-        tutorialButtonBg?.position = CGPoint(x: cx + 60, y: y)
-        tutorialButtonLabel?.position = CGPoint(x: cx + 60, y: y)
+        settingsButtonBg?.position = CGPoint(x: cx - 90, y: y)
+        settingsButtonLabel?.position = CGPoint(x: cx - 90, y: y)
+        tutorialButtonBg?.position = CGPoint(x: cx, y: y)
+        tutorialButtonLabel?.position = CGPoint(x: cx, y: y)
+        helpButtonBg?.position = CGPoint(x: cx + 90, y: y)
+        helpButtonLabel?.position = CGPoint(x: cx + 90, y: y)
     }
 
     private func layoutStatBars(_ container: SKNode, preset: TopPreset, center: CGPoint) {
@@ -456,6 +529,8 @@ extension GameScene {
             pair.bg.isHidden = menuStep == .pickPlayer2
             pair.label.isHidden = pair.bg.isHidden
         }
+        modePanel?.isHidden = menuStep == .pickPlayer2
+        modeSectionHeader?.isHidden = menuStep == .pickPlayer2
         let pickingIndex = menuStep == .pickPlayer2 ? player2PresetIndex : playerPresetIndex
         let slotPresets = currentTopSlotPresets
         for (i, card) in topCards.enumerated() {
@@ -836,7 +911,9 @@ extension GameScene {
     // MARK: Text refresh (language change)
 
     func refreshTexts() {
-        hud.langButton.text = L.current == .pt ? "PT" : "EN"
+        let langText = L.current == .pt ? "PT" : "EN"
+        hud.langButton.text = langText
+        menuLangLabel?.text = langText
         hud.playerNameLabel.text = BeybladePresets.all[playerPresetIndex].name
         hud.cpuNameLabel.text = BeybladePresets.all[cpuPresetIndex].name
         hud.roundLabel.text = "\(L.t("round")) \(roundNumber) — \(playerWins):\(cpuWins)"
@@ -844,6 +921,7 @@ extension GameScene {
 
         menuTitleLabel?.text = L.t("title")
         menuTaglineLabel?.text = L.t("tagline")
+        modeSectionHeader?.text = L.t("chooseMode")
         startLabel?.text = menuStep == .pickPlayer2 ? L.t("pressStart") : L.t("pressStart")
         topSectionHeader?.text = menuStep == .pickPlayer2 ? L.t("pickTopP2") : (matchMode == .vsPlayer ? L.t("pickTopP1") : L.t("chooseTop"))
 
@@ -856,7 +934,7 @@ extension GameScene {
         for (i, card) in topCards.enumerated() {
             let preset = BeybladePresets.all[currentTopSlotPresets[i]]
             card.name.text = preset.name
-            card.type.text = L.typeName(preset.type)
+            card.type.text = "\(typeEmoji(preset.type)) \(L.typeName(preset.type))"
         }
 
         pullHintLabel?.text = L.t("pullHint")

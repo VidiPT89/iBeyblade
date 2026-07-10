@@ -129,6 +129,11 @@ final class GameScene: SKScene {
     var menuTitleLabel: SKLabelNode?
     var menuTaglineLabel: SKLabelNode?
     var topSectionHeader: SKLabelNode?
+    var modeSectionHeader: SKLabelNode?
+    var menuLangLabel: SKLabelNode?
+    var menuLangHit: SKShapeNode?
+    var modePanel: SKShapeNode?
+    var topPanel: SKShapeNode?
     var modeButtons: [MatchMode: (bg: SKShapeNode, label: SKLabelNode)] = [:]
     var diffButtons: [Difficulty: (bg: SKShapeNode, label: SKLabelNode)] = [:]
     var topCards: [(bg: SKShapeNode, name: SKLabelNode, type: SKLabelNode, stats: SKNode)] = []
