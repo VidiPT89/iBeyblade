@@ -380,30 +380,30 @@ extension GameScene {
         guard let overlay = menuOverlay, let bg = overlay.children.first as? SKShapeNode else { return }
         bg.path = CGPath(rect: CGRect(x: 0, y: 0, width: size.width, height: size.height), transform: nil)
         let cx = size.width / 2
-        var y = size.height - topSafeInset - 56
+        var y = size.height - topSafeInset - 58
         menuTitleLabel?.position = CGPoint(x: cx, y: y)
 
         menuLangHit?.position = CGPoint(x: size.width - 46, y: size.height - topSafeInset - 30)
         menuLangLabel?.position = menuLangHit?.position ?? .zero
 
-        y -= 38
+        y -= 46
         menuTaglineLabel?.position = CGPoint(x: cx, y: y)
+        y -= 54
+
+        let modeTop = y + 30
+        modeSectionHeader?.position = CGPoint(x: cx, y: y)
         y -= 40
 
-        let modeTop = y + 24
-        modeSectionHeader?.position = CGPoint(x: cx, y: y)
-        y -= 32
-
         if let vsCPU = modeButtons[.vsCPU], let vsPlayer = modeButtons[.vsPlayer] {
-            vsCPU.bg.position = CGPoint(x: cx - 68, y: y)
+            vsCPU.bg.position = CGPoint(x: cx - 72, y: y)
             vsCPU.label.position = vsCPU.bg.position
-            vsPlayer.bg.position = CGPoint(x: cx + 68, y: y)
+            vsPlayer.bg.position = CGPoint(x: cx + 72, y: y)
             vsPlayer.label.position = vsPlayer.bg.position
         }
-        y -= 48
+        y -= 60
 
         let diffs = Difficulty.allCases
-        let diffSpacing: CGFloat = 96
+        let diffSpacing: CGFloat = 104
         let diffStartX = cx - diffSpacing * CGFloat(diffs.count - 1) / 2
         for (i, diff) in diffs.enumerated() {
             guard let pair = diffButtons[diff] else { continue }
@@ -411,57 +411,57 @@ extension GameScene {
             pair.bg.position = CGPoint(x: x, y: y)
             pair.label.position = CGPoint(x: x, y: y)
         }
-        let modeBottom = y - 24
+        let modeBottom = y - 30
         modePanel?.path = CGPath(
-            roundedRect: CGRect(x: cx - 168, y: modeBottom, width: 336, height: modeTop - modeBottom),
+            roundedRect: CGRect(x: cx - 178, y: modeBottom, width: 356, height: modeTop - modeBottom),
             cornerWidth: 18, cornerHeight: 18, transform: nil
         )
-        y -= 56
+        y -= 84
 
-        let topTop = y + 22
+        let topTop = y + 28
         topSectionHeader?.position = CGPoint(x: cx, y: y)
-        y -= 50
+        y -= 60
 
         let cols = 2
-        let cardW: CGFloat = 156
-        let cardH: CGFloat = 92
-        let startX = cx - cardW * CGFloat(cols - 1) / 2
+        let cardStepX: CGFloat = 168
+        let cardStepY: CGFloat = 104
+        let startX = cx - cardStepX * CGFloat(cols - 1) / 2
         for (i, card) in topCards.enumerated() {
             let col = i % cols
             let row = i / cols
-            let x = startX + CGFloat(col) * cardW
-            let cardY = y - CGFloat(row) * cardH
+            let x = startX + CGFloat(col) * cardStepX
+            let cardY = y - CGFloat(row) * cardStepY
             card.bg.position = CGPoint(x: x, y: cardY)
             card.name.position = CGPoint(x: x, y: cardY + 16)
             card.type.position = CGPoint(x: x, y: cardY)
             layoutStatBars(card.stats, preset: BeybladePresets.all[currentTopSlotPresets[i]], center: CGPoint(x: x, y: cardY - 19))
         }
-        y -= cardH * 1.85
+        y -= cardStepY + 62
 
-        pagePrevButton?.position = CGPoint(x: cx - 40, y: y)
-        (buttons.first(where: { $0.id == "page-prev" })?.node as? SKShapeNode)?.position = CGPoint(x: cx - 40, y: y)
-        pageNextButton?.position = CGPoint(x: cx + 40, y: y)
+        pagePrevButton?.position = CGPoint(x: cx - 44, y: y)
+        (buttons.first(where: { $0.id == "page-prev" })?.node as? SKShapeNode)?.position = CGPoint(x: cx - 44, y: y)
+        pageNextButton?.position = CGPoint(x: cx + 44, y: y)
         for (i, dot) in pageDots.enumerated() {
             dot.position = CGPoint(x: cx - 6 + CGFloat(i) * 12, y: y)
         }
-        let topBottom = y - 26
+        let topBottom = y - 32
         topPanel?.path = CGPath(
-            roundedRect: CGRect(x: cx - 172, y: topBottom, width: 344, height: topTop - topBottom),
+            roundedRect: CGRect(x: cx - 182, y: topBottom, width: 364, height: topTop - topBottom),
             cornerWidth: 18, cornerHeight: 18, transform: nil
         )
-        y -= 56
+        y -= 76
 
         guard let start = buttons.first(where: { $0.id == "start-tap" })?.node else { return }
-        start.position = CGPoint(x: cx, y: max(56 + bottomSafeInset, y))
+        start.position = CGPoint(x: cx, y: max(58 + bottomSafeInset, y))
         startLabel?.position = start.position
-        y = start.position.y - 50
+        y = start.position.y - 62
 
-        settingsButtonBg?.position = CGPoint(x: cx - 90, y: y)
-        settingsButtonLabel?.position = CGPoint(x: cx - 90, y: y)
+        settingsButtonBg?.position = CGPoint(x: cx - 96, y: y)
+        settingsButtonLabel?.position = CGPoint(x: cx - 96, y: y)
         tutorialButtonBg?.position = CGPoint(x: cx, y: y)
         tutorialButtonLabel?.position = CGPoint(x: cx, y: y)
-        helpButtonBg?.position = CGPoint(x: cx + 90, y: y)
-        helpButtonLabel?.position = CGPoint(x: cx + 90, y: y)
+        helpButtonBg?.position = CGPoint(x: cx + 96, y: y)
+        helpButtonLabel?.position = CGPoint(x: cx + 96, y: y)
     }
 
     private func layoutStatBars(_ container: SKNode, preset: TopPreset, center: CGPoint) {

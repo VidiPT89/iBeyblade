@@ -9,7 +9,7 @@ enum L {
         if let saved = UserDefaults.standard.string(forKey: "ibeyblade.lang"), let l = Lang(rawValue: saved) {
             return l
         }
-        return Locale.preferredLanguages.first?.hasPrefix("pt") == true ? .pt : .en
+        return .en
     }() {
         didSet { UserDefaults.standard.set(current.rawValue, forKey: "ibeyblade.lang") }
     }
