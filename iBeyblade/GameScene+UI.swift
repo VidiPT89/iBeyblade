@@ -436,7 +436,7 @@ extension GameScene {
             card.type.position = CGPoint(x: x, y: cardY)
             layoutStatBars(card.stats, preset: BeybladePresets.all[currentTopSlotPresets[i]], center: CGPoint(x: x, y: cardY - 19))
         }
-        y -= cardStepY + 58
+        y -= cardStepY + 80
 
         pagePrevButton?.position = CGPoint(x: cx - 44, y: y)
         (buttons.first(where: { $0.id == "page-prev" })?.node as? SKShapeNode)?.position = CGPoint(x: cx - 44, y: y)
