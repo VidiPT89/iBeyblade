@@ -5,14 +5,9 @@ enum Lang: String {
 }
 
 enum L {
-    static var current: Lang = {
-        if let saved = UserDefaults.standard.string(forKey: "ibeyblade.lang"), let l = Lang(rawValue: saved) {
-            return l
-        }
-        return .en
-    }() {
-        didSet { UserDefaults.standard.set(current.rawValue, forKey: "ibeyblade.lang") }
-    }
+    /// Always starts in English — the PT/EN toggle only affects the current
+    /// session and isn't remembered between launches.
+    static var current: Lang = .en
 
     static func toggle() { current = current == .pt ? .en : .pt }
 

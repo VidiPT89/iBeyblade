@@ -307,7 +307,7 @@ extension GameScene {
         buttons.append(UIButton(node: next, id: "page-next"))
 
         for _ in 0..<2 {
-            let dot = SKShapeNode(circleOfRadius: 4)
+            let dot = SKShapeNode(circleOfRadius: 5)
             dot.strokeColor = .clear
             overlay.addChild(dot)
             pageDots.append(dot)
@@ -442,7 +442,7 @@ extension GameScene {
         (buttons.first(where: { $0.id == "page-prev" })?.node as? SKShapeNode)?.position = CGPoint(x: cx - 44, y: y)
         pageNextButton?.position = CGPoint(x: cx + 44, y: y)
         for (i, dot) in pageDots.enumerated() {
-            dot.position = CGPoint(x: cx - 11 + CGFloat(i) * 22, y: y)
+            dot.position = CGPoint(x: cx - 14 + CGFloat(i) * 28, y: y)
         }
         let topBottom = y - 30
         topPanel?.path = CGPath(
