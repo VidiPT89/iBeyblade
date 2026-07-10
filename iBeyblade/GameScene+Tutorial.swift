@@ -97,6 +97,8 @@ extension GameScene {
         body.numberOfLines = 0
         body.preferredMaxLayoutWidth = 300
         body.lineBreakMode = .byWordWrapping
+        body.horizontalAlignmentMode = .left
+        body.verticalAlignmentMode = .top
         overlay.addChild(body)
         tutorialBodyLabel = body
 
