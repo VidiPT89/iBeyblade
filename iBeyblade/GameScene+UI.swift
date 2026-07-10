@@ -386,13 +386,13 @@ extension GameScene {
         menuLangHit?.position = CGPoint(x: size.width - 46, y: size.height - topSafeInset - 30)
         menuLangLabel?.position = menuLangHit?.position ?? .zero
 
-        y -= 46
+        y -= 52
         menuTaglineLabel?.position = CGPoint(x: cx, y: y)
-        y -= 54
+        y -= 56
 
-        let modeTop = y + 30
+        let modeTop = y + 28
         modeSectionHeader?.position = CGPoint(x: cx, y: y)
-        y -= 40
+        y -= 36
 
         if let vsCPU = modeButtons[.vsCPU], let vsPlayer = modeButtons[.vsPlayer] {
             vsCPU.bg.position = CGPoint(x: cx - 72, y: y)
@@ -400,7 +400,7 @@ extension GameScene {
             vsPlayer.bg.position = CGPoint(x: cx + 72, y: y)
             vsPlayer.label.position = vsPlayer.bg.position
         }
-        y -= 60
+        y -= 52
 
         let diffs = Difficulty.allCases
         let diffSpacing: CGFloat = 104
@@ -411,16 +411,18 @@ extension GameScene {
             pair.bg.position = CGPoint(x: x, y: y)
             pair.label.position = CGPoint(x: x, y: y)
         }
-        let modeBottom = y - 30
+        let modeBottom = y - 28
         modePanel?.path = CGPath(
             roundedRect: CGRect(x: cx - 178, y: modeBottom, width: 356, height: modeTop - modeBottom),
             cornerWidth: 18, cornerHeight: 18, transform: nil
         )
-        y -= 84
+        // The biggest single gap on the screen: makes the two panels read as
+        // clearly separate groups instead of one dense block.
+        y -= 120
 
-        let topTop = y + 28
+        let topTop = y + 30
         topSectionHeader?.position = CGPoint(x: cx, y: y)
-        y -= 60
+        y -= 56
 
         let cols = 2
         let cardStepX: CGFloat = 168
@@ -436,7 +438,7 @@ extension GameScene {
             card.type.position = CGPoint(x: x, y: cardY)
             layoutStatBars(card.stats, preset: BeybladePresets.all[currentTopSlotPresets[i]], center: CGPoint(x: x, y: cardY - 19))
         }
-        y -= cardStepY + 62
+        y -= cardStepY + 58
 
         pagePrevButton?.position = CGPoint(x: cx - 44, y: y)
         (buttons.first(where: { $0.id == "page-prev" })?.node as? SKShapeNode)?.position = CGPoint(x: cx - 44, y: y)
@@ -444,7 +446,7 @@ extension GameScene {
         for (i, dot) in pageDots.enumerated() {
             dot.position = CGPoint(x: cx - 6 + CGFloat(i) * 12, y: y)
         }
-        let topBottom = y - 32
+        let topBottom = y - 30
         topPanel?.path = CGPath(
             roundedRect: CGRect(x: cx - 182, y: topBottom, width: 364, height: topTop - topBottom),
             cornerWidth: 18, cornerHeight: 18, transform: nil
@@ -454,7 +456,7 @@ extension GameScene {
         guard let start = buttons.first(where: { $0.id == "start-tap" })?.node else { return }
         start.position = CGPoint(x: cx, y: max(58 + bottomSafeInset, y))
         startLabel?.position = start.position
-        y = start.position.y - 62
+        y = start.position.y - 80
 
         settingsButtonBg?.position = CGPoint(x: cx - 96, y: y)
         settingsButtonLabel?.position = CGPoint(x: cx - 96, y: y)
