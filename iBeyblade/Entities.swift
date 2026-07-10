@@ -138,9 +138,9 @@ final class BeybladeEntity {
         let spinDir: CGFloat = preset.spin == .cw ? -1 : 1
         spinAngle += spinDir * spinSpeed * dt
 
-        if stamina <= 0 {
-            isAlive = false
-            koReason = .spinOut
-        }
+        // Stamina hitting zero here only marks the top as spent — GameScene's
+        // tick() is what actually calls triggerKO() and concludes the round,
+        // so every KO path (collision or natural decay) goes through the
+        // same code that plays the animation and unblocks the match.
     }
 }

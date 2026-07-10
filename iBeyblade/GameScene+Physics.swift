@@ -27,6 +27,12 @@ extension GameScene {
         player.step(dt: dt, opponent: cpu, arenaCenter: arenaCenter, time: time, decayMultiplier: decayMultiplier)
         cpu.step(dt: dt, opponent: player, arenaCenter: arenaCenter, time: time, decayMultiplier: decayMultiplier)
 
+        // Stamina can hit zero from plain decay (not just a collision hit) —
+        // especially once Sudden Death ramps decay up — so this has to be
+        // checked every frame, not just inside the collision handlers below.
+        if player.stamina <= 0, player.isAlive { triggerKO(player, reason: .spinOut) }
+        if cpu.stamina <= 0, cpu.isAlive { triggerKO(cpu, reason: .spinOut) }
+
         if collisionCooldown > 0 { collisionCooldown -= dt }
         resolveWallCollision(player)
         resolveWallCollision(cpu)

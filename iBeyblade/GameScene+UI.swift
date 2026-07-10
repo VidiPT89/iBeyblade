@@ -356,12 +356,13 @@ extension GameScene {
         helpButtonLabel = helpL
         buttons.append(UIButton(node: helpBg, id: "btn-help"))
 
-        let tutBg = SKShapeNode(rectOf: CGSize(width: 100, height: 34), cornerRadius: 10)
+        let tutBg = SKShapeNode(circleOfRadius: 20)
         tutBg.strokeColor = SKColor(hex: "#4d78ff")
         tutBg.lineWidth = 1.5
         tutBg.fillColor = SKColor(white: 1, alpha: 0.05)
         let tutLabel = SKLabelNode(fontNamed: "Menlo-Bold")
-        tutLabel.fontSize = 12
+        tutLabel.text = "🎓"
+        tutLabel.fontSize = 16
         tutLabel.fontColor = .white
         tutLabel.verticalAlignmentMode = .center
         tutLabel.horizontalAlignmentMode = .center
@@ -943,7 +944,6 @@ extension GameScene {
         pauseSub?.text = L.t("pausedSub")
         matchAgainLabel?.text = L.t("playAgainBtn")
         matchMenuLabel?.text = L.t("menuBtn")
-        tutorialButtonLabel?.text = L.t("tutorialBtn")
 
         refreshSettingsTexts()
         refreshHelpTexts()
