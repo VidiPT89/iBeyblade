@@ -8,12 +8,14 @@
 
 /* Begin PBXBuildFile section */
 		2362C890DAE20D8CB112A0F5 /* GameSKView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15F4B313C2F9056982A6F01F /* GameSKView.swift */; };
+		387F1983C1738820E27C1DA9 /* GameScene+Tutorial.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B9BFF51C9A161E24C10EF90 /* GameScene+Tutorial.swift */; };
 		40D84F41808EB4DC14DF393F /* GameScene+UI.swift in Sources */ = {isa = PBXBuildFile; fileRef = F84B6D8EEC001A5DDE1F5367 /* GameScene+UI.swift */; };
 		53B09520C112DD505FE42BCE /* SoundEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 889DDD4DCBD1EF14933134BA /* SoundEngine.swift */; };
 		578EDFDA9200D3DBE4A21EA5 /* HUDNodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9EED8532A9397E0833A6C53 /* HUDNodes.swift */; };
 		614D4AA4554C0BC6E43C20B0 /* Entities.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDD34D8CE6B377FBCCEB2744 /* Entities.swift */; };
 		776D86DC1464A74A752D3A17 /* GameScene+Physics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DDA30450BECC316821A995C /* GameScene+Physics.swift */; };
 		7E8BD0E4DE0A916BD3F4F8A9 /* GameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB583B3E528F36B5ED642CD6 /* GameView.swift */; };
+		8AF9F102C0854DA3E8AC3ADC /* GameScene+Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29682508E67B4141D2309906 /* GameScene+Settings.swift */; };
 		8EFFF3DCA1396946EEE6AE57 /* iBeybladeApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EDC053ECF92A17ABA7996A8 /* iBeybladeApp.swift */; };
 		92A021B46D2533D02BA833A4 /* Localization.swift in Sources */ = {isa = PBXBuildFile; fileRef = D70BDE08B18F187B4C6C5380 /* Localization.swift */; };
 		B34D79661BA6A6923CC1FA80 /* GameScene+Splash.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A9CFD92CFCA08D41E4BC096 /* GameScene+Splash.swift */; };
@@ -28,7 +30,9 @@
 
 /* Begin PBXFileReference section */
 		01394A9E35442E8F970F8C56 /* BeybladeTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BeybladeTypes.swift; sourceTree = "<group>"; };
+		0B9BFF51C9A161E24C10EF90 /* GameScene+Tutorial.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GameScene+Tutorial.swift"; sourceTree = "<group>"; };
 		15F4B313C2F9056982A6F01F /* GameSKView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameSKView.swift; sourceTree = "<group>"; };
+		29682508E67B4141D2309906 /* GameScene+Settings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GameScene+Settings.swift"; sourceTree = "<group>"; };
 		2DDAD6271FF6C7CE27098A35 /* GameScene+AI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GameScene+AI.swift"; sourceTree = "<group>"; };
 		303FBE36A5B1F186509B408F /* GameScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameScene.swift; sourceTree = "<group>"; };
 		3DDA30450BECC316821A995C /* GameScene+Physics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GameScene+Physics.swift"; sourceTree = "<group>"; };
@@ -67,7 +71,9 @@
 				303FBE36A5B1F186509B408F /* GameScene.swift */,
 				2DDAD6271FF6C7CE27098A35 /* GameScene+AI.swift */,
 				3DDA30450BECC316821A995C /* GameScene+Physics.swift */,
+				29682508E67B4141D2309906 /* GameScene+Settings.swift */,
 				8A9CFD92CFCA08D41E4BC096 /* GameScene+Splash.swift */,
+				0B9BFF51C9A161E24C10EF90 /* GameScene+Tutorial.swift */,
 				F84B6D8EEC001A5DDE1F5367 /* GameScene+UI.swift */,
 				15F4B313C2F9056982A6F01F /* GameSKView.swift */,
 				FB583B3E528F36B5ED642CD6 /* GameView.swift */,
@@ -165,7 +171,9 @@
 				2362C890DAE20D8CB112A0F5 /* GameSKView.swift in Sources */,
 				BBE9658D6B5623F5D549CB9D /* GameScene+AI.swift in Sources */,
 				776D86DC1464A74A752D3A17 /* GameScene+Physics.swift in Sources */,
+				8AF9F102C0854DA3E8AC3ADC /* GameScene+Settings.swift in Sources */,
 				B34D79661BA6A6923CC1FA80 /* GameScene+Splash.swift in Sources */,
+				387F1983C1738820E27C1DA9 /* GameScene+Tutorial.swift in Sources */,
 				40D84F41808EB4DC14DF393F /* GameScene+UI.swift in Sources */,
 				DC0B89C54ADCFD67476193F2 /* GameScene.swift in Sources */,
 				7E8BD0E4DE0A916BD3F4F8A9 /* GameView.swift in Sources */,

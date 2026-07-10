@@ -1,7 +1,8 @@
 import SpriteKit
 
 /// Battle simulation: autonomous top movement, wall/top collision
-/// resolution, and spin-out / ring-out / burst detection.
+/// resolution, Special Move gauge fill, and spin-out / ring-out / burst
+/// detection.
 extension GameScene {
 
     func tick(dt: CGFloat, time: CGFloat) {
@@ -16,14 +17,21 @@ extension GameScene {
             pendingRoundEnd = next
         }
 
-        player.step(dt: dt, opponent: cpu, arenaCenter: arenaCenter, time: time)
-        cpu.step(dt: dt, opponent: player, arenaCenter: arenaCenter, time: time)
+        battleElapsed += dt
+        if !suddenDeathActive, battleElapsed >= GameConfig.suddenDeathAt {
+            suddenDeathActive = true
+            showSuddenDeathBanner()
+        }
+        let decayMultiplier: CGFloat = suddenDeathActive ? GameConfig.suddenDeathDecayMultiplier : 1
+
+        player.step(dt: dt, opponent: cpu, arenaCenter: arenaCenter, time: time, decayMultiplier: decayMultiplier)
+        cpu.step(dt: dt, opponent: player, arenaCenter: arenaCenter, time: time, decayMultiplier: decayMultiplier)
 
         if collisionCooldown > 0 { collisionCooldown -= dt }
         resolveWallCollision(player)
         resolveWallCollision(cpu)
         resolveTopCollision()
-        updateCPUAI(dt: dt)
+        if !isLocal2P { updateCPUAI(dt: dt) }
     }
 
     private func resolveWallCollision(_ e: BeybladeEntity) {
@@ -50,6 +58,7 @@ extension GameScene {
         e.position.x = arenaCenter.x + nx * limit
         e.position.y = arenaCenter.y + ny * limit
         e.stamina = max(0, e.stamina - 1.5)
+        e.gainSpecialGauge(6)
 
         spawnSparks(at: e.position, color: SKColor(hex: e.preset.glowHex), count: 5)
         SoundEngine.shared.playClash(intensity: 0.12)
@@ -88,8 +97,9 @@ extension GameScene {
 
         // Knockback is an outright velocity kick (not a scaled "force"), so a
         // single clash produces a visible bounce-apart instead of a tiny nudge.
-        let knockOnPlayer = hitPower * (cpu.preset.attack / (player.preset.defense + 0.2)) * 0.6
-        let knockOnCPU = hitPower * (player.preset.attack / (cpu.preset.defense + 0.2)) * 0.6
+        // Special Move buffs feed in here via effectiveAttack/effectiveDefense.
+        let knockOnPlayer = hitPower * (cpu.effectiveAttack / (player.effectiveDefense + 0.2)) * 0.6
+        let knockOnCPU = hitPower * (player.effectiveAttack / (cpu.effectiveDefense + 0.2)) * 0.6
 
         player.velocity.dx -= nx * knockOnPlayer
         player.velocity.dy -= ny * knockOnPlayer
@@ -107,6 +117,8 @@ extension GameScene {
         // so a single hit costs a sensible chunk instead of draining instantly.
         player.stamina = max(0, player.stamina - knockOnPlayer * 0.12)
         cpu.stamina = max(0, cpu.stamina - knockOnCPU * 0.12)
+        player.gainSpecialGauge(8 + knockOnPlayer * 0.05)
+        cpu.gainSpecialGauge(8 + knockOnCPU * 0.05)
 
         let midpoint = CGPoint(x: (player.position.x + cpu.position.x) / 2, y: (player.position.y + cpu.position.y) / 2)
         let clashIntensity = min(1, hitPower / 260)
@@ -158,6 +170,7 @@ extension GameScene {
         if playerWins >= GameConfig.winsNeeded || cpuWins >= GameConfig.winsNeeded {
             phase = .matchOver
             if playerWins > cpuWins { SoundEngine.shared.playMatchWin() } else { SoundEngine.shared.playRoundLose() }
+            recordMatchResult(playerWon: playerWins > cpuWins)
             showMatchOverOverlay()
         } else {
             phase = .roundResult

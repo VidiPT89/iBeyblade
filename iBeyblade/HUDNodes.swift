@@ -1,25 +1,30 @@
 import SpriteKit
 
-/// Groups the always-visible battle HUD: stamina bars, round pips, boost
-/// button, language/pause controls.
+/// Groups the always-visible battle HUD: stamina bars, round pips, Special
+/// Move buttons (one per player), language/pause/settings/help controls.
 final class HUDNodes {
     let container = SKNode()
 
     let playerStaminaBg = SKShapeNode(rectOf: CGSize(width: 130, height: 10), cornerRadius: 5)
     let playerStaminaFill = SKShapeNode(rectOf: CGSize(width: 130, height: 10), cornerRadius: 5)
     let playerNameLabel = SKLabelNode(fontNamed: "Menlo-Bold")
-    let playerPips = SKNode()
 
     let cpuStaminaBg = SKShapeNode(rectOf: CGSize(width: 130, height: 10), cornerRadius: 5)
     let cpuStaminaFill = SKShapeNode(rectOf: CGSize(width: 130, height: 10), cornerRadius: 5)
     let cpuNameLabel = SKLabelNode(fontNamed: "Menlo-Bold")
-    let cpuPips = SKNode()
 
     let roundLabel = SKLabelNode(fontNamed: "Menlo-Bold")
+    let suddenDeathLabel = SKLabelNode(fontNamed: "Menlo-Bold")
 
+    // Player 1 Special Move button (bottom-right)
     let boostButton = SKShapeNode(circleOfRadius: 34)
     let boostLabel = SKLabelNode(fontNamed: "Menlo-Bold")
     let boostChargesLabel = SKLabelNode(fontNamed: "Menlo")
+
+    // Player 2 Special Move button (top-right, local 2P only)
+    let boostButton2 = SKShapeNode(circleOfRadius: 34)
+    let boostLabel2 = SKLabelNode(fontNamed: "Menlo-Bold")
+    let boostChargesLabel2 = SKLabelNode(fontNamed: "Menlo")
 
     let langButton = SKLabelNode(fontNamed: "Menlo-Bold")
     let langHit = SKShapeNode(rectOf: CGSize(width: 44, height: 40))

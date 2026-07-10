@@ -3,7 +3,8 @@ import SpriteKit
 let baseLaunchSpeed: CGFloat = 260
 
 /// CPU opponent behavior: launch aim/power tuned by difficulty, plus
-/// periodic boost usage that leans harder when the CPU is behind on stamina.
+/// periodic Special Move usage that leans harder when the CPU is behind.
+/// Not called at all in local 2P — Player 2 controls the "cpu" slot directly.
 extension GameScene {
 
     func launchCPUTop() {
@@ -16,23 +17,21 @@ extension GameScene {
         let direction = CGVector(dx: cos(angle) * baseLaunchSpeed, dy: sin(angle) * baseLaunchSpeed)
         cpu.launch(from: origin, direction: direction, power: power)
         cpuNode.playLaunchPulse()
-        cpuBoostTimer = CGFloat.random(in: cfg.boostCheckInterval)
+        cpuSpecialTimer = CGFloat.random(in: cfg.specialCheckInterval)
     }
 
     func updateCPUAI(dt: CGFloat) {
         guard cpu.isAlive, cpu.launched else { return }
-        cpuBoostTimer -= dt
-        guard cpuBoostTimer <= 0 else { return }
+        cpuSpecialTimer -= dt
+        guard cpuSpecialTimer <= 0 else { return }
         let cfg = GameConfig.difficulties[difficulty]!
-        cpuBoostTimer = CGFloat.random(in: cfg.boostCheckInterval)
+        cpuSpecialTimer = CGFloat.random(in: cfg.specialCheckInterval)
 
+        guard cpu.specialGauge >= 100 else { return }
         let behind = cpu.stamina < player.stamina - 8
-        var chance = cfg.boostChance
-        if behind { chance *= 1.7 }
+        var chance = cfg.specialUseChance
+        if behind { chance = min(1, chance * 1.4) }
         guard CGFloat.random(in: 0...1) < chance else { return }
-        if cpu.applyBoost() {
-            cpuNode.playBoostPulse()
-            SoundEngine.shared.playBoost()
-        }
+        fireSpecialMove(for: cpu, node: cpuNode)
     }
 }

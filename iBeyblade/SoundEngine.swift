@@ -122,6 +122,18 @@ final class SoundEngine {
         playTone(freq: 500, freqEnd: 1100, duration: 0.18, shape: .square, gain: 0.15)
     }
 
+    func playSpecialMove() {
+        playSequence([
+            (220, 900, 0, 0.22, .sawtooth, 0.16), (440, 1400, 60, 0.24, .square, 0.16),
+            (660, 1800, 140, 0.3, .square, 0.16),
+        ])
+        playTone(freq: 3200, freqEnd: 600, duration: 0.4, shape: .noise, gain: 0.14)
+    }
+
+    func playGaugeFull() {
+        playSequence([(700, nil, 0, 0.08, .square, 0.12), (1000, nil, 70, 0.12, .square, 0.12)])
+    }
+
     func playSpinOut() {
         playSequence([(260, 140, 0, 0.5, .sawtooth, 0.16)])
         playTone(freq: 1600, freqEnd: 200, duration: 0.5, shape: .noise, gain: 0.08)

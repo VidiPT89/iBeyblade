@@ -8,23 +8,35 @@ enum Difficulty: String, CaseIterable {
     case easy, normal, hard
 }
 
+enum MatchMode {
+    case vsCPU, vsPlayer
+}
+
+enum MenuStep {
+    case main, pickPlayer2
+}
+
 struct DifficultyConfig {
     /// radians of random error added to the CPU's aim
     let aimVariance: CGFloat
     let powerMin: CGFloat
     let powerMax: CGFloat
-    /// chance per check that the CPU spends a boost charge when it's behind
-    let boostChance: CGFloat
-    let boostCheckInterval: ClosedRange<CGFloat>
+    /// chance per check that the CPU fires its Special Move when it's behind
+    let specialUseChance: CGFloat
+    let specialCheckInterval: ClosedRange<CGFloat>
 }
 
 enum GameConfig {
     static let difficulties: [Difficulty: DifficultyConfig] = [
-        .easy: DifficultyConfig(aimVariance: 0.5, powerMin: 0.45, powerMax: 0.7, boostChance: 0.12, boostCheckInterval: 2.5...4.5),
-        .normal: DifficultyConfig(aimVariance: 0.28, powerMin: 0.6, powerMax: 0.88, boostChance: 0.28, boostCheckInterval: 1.8...3.2),
-        .hard: DifficultyConfig(aimVariance: 0.12, powerMin: 0.75, powerMax: 1.0, boostChance: 0.48, boostCheckInterval: 1.0...2.2),
+        .easy: DifficultyConfig(aimVariance: 0.5, powerMin: 0.45, powerMax: 0.7, specialUseChance: 0.35, specialCheckInterval: 2.0...3.5),
+        .normal: DifficultyConfig(aimVariance: 0.28, powerMin: 0.6, powerMax: 0.88, specialUseChance: 0.55, specialCheckInterval: 1.4...2.6),
+        .hard: DifficultyConfig(aimVariance: 0.12, powerMin: 0.75, powerMax: 1.0, specialUseChance: 0.8, specialCheckInterval: 0.8...1.8),
     ]
     static let winsNeeded = 2
+    /// Seconds into a round before Sudden Death ramps up stamina decay, so no
+    /// round can stall out indefinitely in a physics standoff.
+    static let suddenDeathAt: CGFloat = 22
+    static let suddenDeathDecayMultiplier: CGFloat = 3.5
 }
 
 /// A tappable region tracked outside the node tree's normal hit-testing,
@@ -44,13 +56,29 @@ struct Spark {
     weak var node: SKShapeNode?
 }
 
+/// Tracks one in-progress pull-back-and-release launch gesture, keyed by the
+/// touch that started it — supports up to two concurrent drags in local 2P.
+struct DragState {
+    let target: DragTarget
+    let anchor: CGPoint
+    var current: CGPoint
+}
+
+enum DragTarget {
+    case player1, player2
+}
+
 final class GameScene: SKScene {
 
     // MARK: State
 
     var phase: Phase = .splash
     var difficulty: Difficulty = .normal
+    var matchMode: MatchMode = .vsCPU
+    var menuStep: MenuStep = .main
+    var topPage: Int = 0
     var playerPresetIndex = 0
+    var player2PresetIndex = 1
     var cpuPresetIndex = 1
     var playerWins = 0
     var cpuWins = 0
@@ -60,11 +88,17 @@ final class GameScene: SKScene {
     var lastRoundReason: KOReason?
     var pendingRoundEnd: CGFloat?
     var collisionCooldown: CGFloat = 0
+    var battleElapsed: CGFloat = 0
+    var suddenDeathActive: Bool = false
 
     var player: BeybladeEntity!
     var cpu: BeybladeEntity!
     var playerNode: BeybladeNode!
     var cpuNode: BeybladeNode!
+
+    /// In `.vsPlayer` mode the "cpu" slot is Player 2 — same entities/physics,
+    /// just driven by a second human drag instead of `GameScene+AI`.
+    var isLocal2P: Bool { matchMode == .vsPlayer }
 
     // MARK: Arena geometry (screen-space, recomputed on layout)
 
@@ -94,16 +128,26 @@ final class GameScene: SKScene {
 
     var menuTitleLabel: SKLabelNode?
     var menuTaglineLabel: SKLabelNode?
+    var topSectionHeader: SKLabelNode?
+    var modeButtons: [MatchMode: (bg: SKShapeNode, label: SKLabelNode)] = [:]
     var diffButtons: [Difficulty: (bg: SKShapeNode, label: SKLabelNode)] = [:]
     var topCards: [(bg: SKShapeNode, name: SKLabelNode, type: SKLabelNode, stats: SKNode)] = []
+    var pageDots: [SKShapeNode] = []
+    var pagePrevButton: SKShapeNode?
+    var pageNextButton: SKShapeNode?
     var startLabel: SKLabelNode?
-    var langButtonLabel: SKLabelNode?
+    var settingsButtonBg: SKShapeNode?
+    var settingsButtonLabel: SKLabelNode?
+    var helpButtonBg: SKShapeNode?
+    var helpButtonLabel: SKLabelNode?
+    var tutorialButtonBg: SKShapeNode?
+    var tutorialButtonLabel: SKLabelNode?
 
     var pullHintLabel: SKLabelNode?
+    var pullHintLabel2: SKLabelNode?
     var pullIndicator: SKShapeNode?
-    var launchAnchor: CGPoint = .zero
-    var isDragging = false
-    var dragCurrent: CGPoint = .zero
+    var pullIndicator2: SKShapeNode?
+    var activeDrags: [ObjectIdentifier: DragState] = [:]
 
     var pauseTitle: SKLabelNode?
     var pauseSub: SKLabelNode?
@@ -116,6 +160,8 @@ final class GameScene: SKScene {
     var matchAgainBg: SKShapeNode?
     var matchMenuBg: SKShapeNode?
 
+    var specialBanner: SKLabelNode?
+
     // Splash (see GameScene+Splash.swift)
     var splashOverlay: SKNode?
     var splashBg: SKShapeNode?
@@ -126,14 +172,45 @@ final class GameScene: SKScene {
     var splashLink: SKLabelNode?
     var splashSkipLabel: SKLabelNode?
 
+    // Settings (see GameScene+Settings.swift)
+    var settingsOverlay: SKNode?
+    var settingsTitleLabel: SKLabelNode?
+    var soundRow: (label: SKLabelNode, bg: SKShapeNode, valueLabel: SKLabelNode)?
+    var hapticsRow: (label: SKLabelNode, bg: SKShapeNode, valueLabel: SKLabelNode)?
+    var langRow: (label: SKLabelNode, bg: SKShapeNode, valueLabel: SKLabelNode)?
+    var winsRow: (label: SKLabelNode, valueLabel: SKLabelNode)?
+    var settingsCloseBg: SKShapeNode?
+    var settingsCloseLabel: SKLabelNode?
+
+    // Help (see GameScene+Tutorial.swift)
+    var helpOverlay: SKNode?
+    var helpTitleLabel: SKLabelNode?
+    var helpBodyLabel: SKLabelNode?
+    var helpCloseBg: SKShapeNode?
+    var helpCloseLabel: SKLabelNode?
+
+    // Tutorial (see GameScene+Tutorial.swift)
+    var tutorialOverlay: SKNode?
+    var tutorialPage: Int = 1
+    var tutorialTitleLabel: SKLabelNode?
+    var tutorialBodyLabel: SKLabelNode?
+    var tutorialNextBg: SKShapeNode?
+    var tutorialNextLabel: SKLabelNode?
+    var tutorialSkipLabel: SKLabelNode?
+    var tutorialDots: [SKShapeNode] = []
+
     // Ambient background
     struct Mote { let node: SKShapeNode; let speed: CGFloat; var phase: CGFloat }
     var motes: [Mote] = []
 
     // AI (see GameScene+AI.swift)
-    var cpuBoostTimer: CGFloat = 0
+    var cpuSpecialTimer: CGFloat = 0
 
     var lastUpdateTime: TimeInterval = 0
+
+    var isBlockingOverlayVisible: Bool {
+        (settingsOverlay?.isHidden == false) || (helpOverlay?.isHidden == false) || (tutorialOverlay?.isHidden == false)
+    }
 
     // MARK: Lifecycle
 
@@ -152,6 +229,9 @@ final class GameScene: SKScene {
         buildPauseOverlay()
         buildRoundResultOverlay()
         buildMatchOverOverlay()
+        buildSettings()
+        buildHelp()
+        buildTutorial()
         buildSplash()
         refreshTexts()
         layout(size: size)
@@ -195,6 +275,9 @@ final class GameScene: SKScene {
         layoutPauseOverlay(size: size)
         layoutRoundResultOverlay(size: size)
         layoutMatchOverOverlay(size: size)
+        layoutSettings(size: size)
+        layoutHelp(size: size)
+        layoutTutorial(size: size)
         layoutSplash(size: size)
     }
 

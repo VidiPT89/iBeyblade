@@ -113,6 +113,9 @@ extension GameScene {
     func closeSplash() {
         guard let overlay = splashOverlay, !overlay.isHidden else { return }
         overlay.removeAllActions()
-        overlay.run(.sequence([.fadeOut(withDuration: 0.25), .run { overlay.isHidden = true }]))
+        overlay.run(.sequence([.fadeOut(withDuration: 0.25), .run { [weak self] in
+            overlay.isHidden = true
+            self?.maybeShowTutorialOnFirstLaunch()
+        }]))
     }
 }

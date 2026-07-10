@@ -119,6 +119,35 @@ final class BeybladeNode: SKNode {
         ]))
     }
 
+    /// The top's guardian spirit bursting out — bigger and brighter than a
+    /// regular boost pulse, marking a Special Move.
+    func playSpecialBurst() {
+        let glowColor = SKColor(hex: entity.preset.glowHex)
+        for i in 0..<3 {
+            let ring = SKShapeNode(circleOfRadius: entity.preset.radius)
+            ring.strokeColor = glowColor
+            ring.lineWidth = 4
+            ring.fillColor = .clear
+            ring.glowWidth = 8
+            ring.alpha = 0.9
+            ring.zPosition = -1
+            addChild(ring)
+            let delay = Double(i) * 0.12
+            ring.run(.sequence([
+                .wait(forDuration: delay),
+                .group([.scale(to: 3.4, duration: 0.6), .fadeOut(withDuration: 0.6)]),
+                .removeFromParent(),
+            ]))
+        }
+        let core = SKShapeNode(circleOfRadius: entity.preset.radius * 1.3)
+        core.fillColor = glowColor
+        core.strokeColor = .clear
+        core.alpha = 0.6
+        core.zPosition = -1
+        addChild(core)
+        core.run(.sequence([.group([.scale(to: 2.4, duration: 0.5), .fadeOut(withDuration: 0.5)]), .removeFromParent()]))
+    }
+
     func playKOAnimation(reason: KOReason) {
         removeAllActions()
         switch reason {
