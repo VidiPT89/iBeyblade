@@ -156,6 +156,8 @@ final class GameScene: SKScene {
 
     var pauseTitle: SKLabelNode?
     var pauseSub: SKLabelNode?
+    var pauseMenuBg: SKShapeNode?
+    var pauseMenuLabel: SKLabelNode?
     var roundResultTitle: SKLabelNode?
     var roundResultSub: SKLabelNode?
     var matchOverTitle: SKLabelNode?

@@ -770,6 +770,23 @@ extension GameScene {
         sub.fontColor = SKColor(white: 1, alpha: 0.7)
         overlay.addChild(sub)
 
+        let menuBg = SKShapeNode(rectOf: CGSize(width: 170, height: 46), cornerRadius: 12)
+        menuBg.strokeColor = SKColor(hex: "#4d78ff")
+        menuBg.lineWidth = 1.5
+        menuBg.fillColor = SKColor(white: 1, alpha: 0.06)
+        let menuLabel = SKLabelNode(fontNamed: "Menlo-Bold")
+        menuLabel.fontSize = 14
+        menuLabel.fontColor = .white
+        menuLabel.verticalAlignmentMode = .center
+        menuLabel.horizontalAlignmentMode = .center
+        overlay.addChild(menuBg)
+        overlay.addChild(menuLabel)
+        pauseMenuBg = menuBg
+        pauseMenuLabel = menuLabel
+        // Inserted before the full-screen "pause-tap" catch-all so this
+        // specific button wins the hit-test instead of just resuming.
+        buttons.insert(UIButton(node: menuBg, id: "pause-menu"), at: 0)
+
         addChild(overlay)
         pauseOverlay = overlay
         pauseTitle = title
@@ -781,6 +798,8 @@ extension GameScene {
         bg.path = CGPath(rect: CGRect(x: 0, y: 0, width: size.width, height: size.height), transform: nil)
         pauseTitle?.position = CGPoint(x: size.width / 2, y: size.height / 2 + 16)
         pauseSub?.position = CGPoint(x: size.width / 2, y: size.height / 2 - 12)
+        pauseMenuBg?.position = CGPoint(x: size.width / 2, y: size.height / 2 - 64)
+        pauseMenuLabel?.position = pauseMenuBg?.position ?? .zero
     }
 
     // MARK: Round result overlay
@@ -942,6 +961,7 @@ extension GameScene {
         pullHintLabel2?.text = L.t("pullHint")
         pauseTitle?.text = L.t("pausedTitle")
         pauseSub?.text = L.t("pausedSub")
+        pauseMenuLabel?.text = L.t("menuBtn")
         matchAgainLabel?.text = L.t("playAgainBtn")
         matchMenuLabel?.text = L.t("menuBtn")
 
@@ -976,6 +996,9 @@ extension GameScene {
         case "pause-tap":
             gamePaused = false
             pauseOverlay?.isHidden = true
+        case "pause-menu":
+            pauseOverlay?.isHidden = true
+            showMenu()
         case "btn-boost":
             guard phase == .battle, player.isAlive else { return }
             fireSpecialMove(for: player, node: playerNode)
