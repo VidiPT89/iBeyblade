@@ -146,7 +146,11 @@ extension GameScene {
     }
 
     private func triggerKO(_ e: BeybladeEntity, reason: KOReason) {
-        guard e.isAlive else { return }
+        // A single hard collision can knock both tops to zero stamina in the
+        // same frame. Once a round-ending KO is already scheduled, ignore a
+        // second simultaneous KO instead of letting it overwrite
+        // `lastRoundLoser` — otherwise the wrong side can be declared loser.
+        guard e.isAlive, pendingRoundEnd == nil else { return }
         e.isAlive = false
         e.koReason = reason
         let node = e === player ? playerNode! : cpuNode!
