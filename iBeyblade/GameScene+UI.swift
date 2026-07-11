@@ -237,19 +237,25 @@ extension GameScene {
         overlay.addChild(modeHeader)
         modeSectionHeader = modeHeader
 
-        for mode in [MatchMode.vsCPU, .vsPlayer] {
-            let bgBtn = SKShapeNode(rectOf: CGSize(width: 130, height: 32), cornerRadius: 8)
+        for mode in [MatchMode.vsCPU, .vsPlayer, .online] {
+            let bgBtn = SKShapeNode(rectOf: CGSize(width: 104, height: 32), cornerRadius: 8)
             bgBtn.strokeColor = SKColor(hex: "#4d78ff")
             bgBtn.lineWidth = 1.5
             let label = SKLabelNode(fontNamed: "Menlo-Bold")
-            label.fontSize = 12
+            label.fontSize = 11
             label.verticalAlignmentMode = .center
             label.horizontalAlignmentMode = .center
             label.fontColor = .white
             overlay.addChild(bgBtn)
             overlay.addChild(label)
             modeButtons[mode] = (bgBtn, label)
-            buttons.append(UIButton(node: bgBtn, id: mode == .vsCPU ? "mode-vsCPU" : "mode-vsPlayer"))
+            let id: String
+            switch mode {
+            case .vsCPU: id = "mode-vsCPU"
+            case .vsPlayer: id = "mode-vsPlayer"
+            case .online: id = "mode-online"
+            }
+            buttons.append(UIButton(node: bgBtn, id: id))
         }
 
         for diff in Difficulty.allCases {
@@ -409,11 +415,14 @@ extension GameScene {
         modeSectionHeader?.position = CGPoint(x: cx, y: y)
         y -= 36
 
-        if let vsCPU = modeButtons[.vsCPU], let vsPlayer = modeButtons[.vsPlayer] {
-            vsCPU.bg.position = CGPoint(x: cx - 72, y: y)
-            vsCPU.label.position = vsCPU.bg.position
-            vsPlayer.bg.position = CGPoint(x: cx + 72, y: y)
-            vsPlayer.label.position = vsPlayer.bg.position
+        let modeOrder: [MatchMode] = [.vsCPU, .vsPlayer, .online]
+        let modeSpacing: CGFloat = 112
+        let modeStartX = cx - modeSpacing * CGFloat(modeOrder.count - 1) / 2
+        for (i, mode) in modeOrder.enumerated() {
+            guard let pair = modeButtons[mode] else { continue }
+            let x = modeStartX + CGFloat(i) * modeSpacing
+            pair.bg.position = CGPoint(x: x, y: y)
+            pair.label.position = CGPoint(x: x, y: y)
         }
         y -= 52
 
@@ -428,7 +437,7 @@ extension GameScene {
         }
         let modeBottom = y - 28
         modePanel?.path = CGPath(
-            roundedRect: CGRect(x: cx - 178, y: modeBottom, width: 356, height: modeTop - modeBottom),
+            roundedRect: CGRect(x: cx - 188, y: modeBottom, width: 376, height: modeTop - modeBottom),
             cornerWidth: 18, cornerHeight: 18, transform: nil
         )
         y -= 66
@@ -464,6 +473,8 @@ extension GameScene {
             roundedRect: CGRect(x: cx - 182, y: topBottom, width: 364, height: topTop - topBottom),
             cornerWidth: 18, cornerHeight: 18, transform: nil
         )
+        topPanelTopY = topTop
+        topPanelBottomY = topBottom
         y -= 76
 
         guard let start = buttons.first(where: { $0.id == "start-tap" })?.node else { return }
@@ -518,6 +529,14 @@ extension GameScene {
     }
 
     func showMenu() {
+        let wasOnline = isOnline
+        if onlineActive { leaveOnlineRoom() }
+        if wasOnline {
+            matchMode = .vsCPU
+            setTopPickerHidden(false)
+            lobbyPanel?.isHidden = true
+            onlineStatusLabel?.isHidden = true
+        }
         phase = .menu
         gamePaused = false
         menuStep = .main
@@ -538,7 +557,7 @@ extension GameScene {
         for (diff, pair) in diffButtons {
             let selected = diff == difficulty
             pair.bg.fillColor = selected ? SKColor(hex: "#4d78ff").withAlphaComponent(0.35) : SKColor(white: 1, alpha: 0.05)
-            pair.bg.isHidden = matchMode == .vsPlayer || menuStep == .pickPlayer2
+            pair.bg.isHidden = matchMode == .vsPlayer || matchMode == .online || menuStep == .pickPlayer2
             pair.label.isHidden = pair.bg.isHidden
         }
         for pair in modeButtons.values {
@@ -685,7 +704,15 @@ extension GameScene {
             playerNode.playLaunchPulse()
             SoundEngine.shared.playLaunch()
             Haptics.impact(0.4)
-            if !isLocal2P {
+            if isOnline {
+                if mp.role == "guest" {
+                    mp.sendAction("launch", payload: [
+                        "originX": playerLaunchOrigin.x, "originY": playerLaunchOrigin.y,
+                        "dirX": direction.dx, "dirY": direction.dy, "power": power,
+                    ])
+                }
+                checkOnlineBothLaunched()
+            } else if !isLocal2P {
                 launchCPUTop()
                 phase = .battle
                 launchOverlay?.isHidden = true
@@ -855,7 +882,9 @@ extension GameScene {
     func showRoundResultOverlay(winner: BeybladeEntity?) {
         roundResultOverlay?.isHidden = false
         let text: String
-        if isLocal2P {
+        if isOnline {
+            text = winner === cpu ? L.t("p2WinsOnline") : L.t("p1WinsOnline")
+        } else if isLocal2P {
             text = winner === cpu ? L.t("p2WinRound") : L.t("p1WinRound")
         } else {
             text = winner === cpu ? L.t("cpuWinRound") : L.t("youWinRound")
@@ -927,7 +956,8 @@ extension GameScene {
         matchOverSub?.position = CGPoint(x: cx, y: size.height / 2 + 20)
         matchAgainBg?.position = CGPoint(x: cx, y: size.height / 2 - 40)
         matchAgainLabel?.position = matchAgainBg?.position ?? .zero
-        matchMenuBg?.position = CGPoint(x: cx, y: size.height / 2 - 96)
+        let menuY = isOnline ? (size.height / 2 - 40) : (size.height / 2 - 96)
+        matchMenuBg?.position = CGPoint(x: cx, y: menuY)
         matchMenuLabel?.position = matchMenuBg?.position ?? .zero
     }
 
@@ -941,6 +971,8 @@ extension GameScene {
         }
         matchOverTitle?.fontColor = playerWon ? SKColor(hex: "#ffd27a") : SKColor(hex: "#ff5a3c")
         matchOverSub?.text = "\(playerWins) : \(cpuWins)"
+        matchAgainBg?.isHidden = isOnline
+        matchAgainLabel?.isHidden = isOnline
     }
 
     // MARK: Text refresh (language change)
@@ -962,6 +994,14 @@ extension GameScene {
 
         modeButtons[.vsCPU]?.label.text = L.t("modeVsCPU")
         modeButtons[.vsPlayer]?.label.text = L.t("modeVsPlayer")
+        modeButtons[.online]?.label.text = L.t("modeOnline")
+
+        lobbyCreateLabel?.text = L.t("createRoomBtn")
+        lobbyJoinLabel?.text = L.t("joinRoomBtn")
+        lobbyQuickLabel?.text = L.t("quickPlayBtn")
+        lobbyWaitingLabel?.text = L.t("waitingForOpponent")
+        lobbyCancelLabel?.text = L.t("cancelBtn")
+        if isOnline, onlineMatched { startLabel?.text = L.t("readyBtn") }
 
         for diff in Difficulty.allCases {
             diffButtons[diff]?.label.text = L.t("diff\(diff.rawValue.prefix(1).uppercased() + diff.rawValue.dropFirst())")
@@ -1021,19 +1061,45 @@ extension GameScene {
             showMenu()
         case "btn-boost":
             guard phase == .battle, player.isAlive else { return }
+            if isOnline, mp.role == "guest" {
+                mp.sendAction("special", payload: [:])
+            }
             fireSpecialMove(for: player, node: playerNode)
         case "btn-boost2":
             guard phase == .battle, isLocal2P, cpu.isAlive else { return }
             fireSpecialMove(for: cpu, node: cpuNode)
-        case "mode-vsCPU": matchMode = .vsCPU; refreshTexts()
-        case "mode-vsPlayer": matchMode = .vsPlayer; refreshTexts()
+        case "mode-vsCPU":
+            if matchMode == .online { leaveOnlineRoom() }
+            matchMode = .vsCPU
+            setTopPickerHidden(false)
+            lobbyPanel?.isHidden = true
+            onlineStatusLabel?.isHidden = true
+            refreshTexts()
+        case "mode-vsPlayer":
+            if matchMode == .online { leaveOnlineRoom() }
+            matchMode = .vsPlayer
+            setTopPickerHidden(false)
+            lobbyPanel?.isHidden = true
+            onlineStatusLabel?.isHidden = true
+            refreshTexts()
+        case "mode-online":
+            matchMode = .online
+            menuStep = .main
+            resetLobbyUI()
+            refreshTexts()
+        case "lobby-create": mpTapCreate()
+        case "lobby-join": mpTapJoin()
+        case "lobby-quick": mpTapQuickPlay()
+        case "lobby-cancel": mpTapCancel()
         case "diff-easy": difficulty = .easy; refreshMenuSelection()
         case "diff-normal": difficulty = .normal; refreshMenuSelection()
         case "diff-hard": difficulty = .hard; refreshMenuSelection()
         case "page-prev": topPage = topPage == 0 ? 1 : 0; refreshTexts()
         case "page-next": topPage = topPage == 0 ? 1 : 0; refreshTexts()
         case "start-tap":
-            if menuStep == .main, matchMode == .vsPlayer {
+            if isOnline {
+                mpConfirmReady()
+            } else if menuStep == .main, matchMode == .vsPlayer {
                 menuStep = .pickPlayer2
                 refreshTexts()
             } else {
@@ -1042,10 +1108,12 @@ extension GameScene {
             }
         case "round-continue":
             guard phase == .roundResult else { return }
+            if isOnline, mp.role == "guest" { return } // host owns round transitions; guest waits for the room update
             roundNumber += 1
             startRound()
+            if isOnline { mp.updateRoom(["phase": "launch", "roundNumber": roundNumber]) }
         case "match-again":
-            prepareNewMatch()
+            if isOnline { showMenu() } else { prepareNewMatch() }
         case "match-menu":
             showMenu()
         case "btn-settings":

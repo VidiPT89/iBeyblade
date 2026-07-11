@@ -3,7 +3,7 @@ import SpriteKit
 /// Visual representation of a `BeybladeEntity`: a glowing disc with rotating
 /// fin blades, a stamina ring, and one-shot launch/boost/KO animations.
 final class BeybladeNode: SKNode {
-    let entity: BeybladeEntity
+    let topEntity: BeybladeEntity
 
     private let bodyShape: SKShapeNode
     private let finLayer: SKNode
@@ -11,9 +11,9 @@ final class BeybladeNode: SKNode {
     private let staminaRing: SKShapeNode
     private let nameLabel: SKLabelNode
 
-    init(entity: BeybladeEntity) {
-        self.entity = entity
-        let r = entity.preset.radius
+    init(topEntity: BeybladeEntity) {
+        self.topEntity = topEntity
+        let r = topEntity.preset.radius
         bodyShape = SKShapeNode(circleOfRadius: r)
         finLayer = SKNode()
         hubShape = SKShapeNode(circleOfRadius: r * 0.34)
@@ -21,8 +21,8 @@ final class BeybladeNode: SKNode {
         nameLabel = SKLabelNode(fontNamed: "Menlo-Bold")
         super.init()
 
-        let bodyColor = SKColor(hex: entity.preset.bodyHex)
-        let glowColor = SKColor(hex: entity.preset.glowHex)
+        let bodyColor = SKColor(hex: topEntity.preset.bodyHex)
+        let glowColor = SKColor(hex: topEntity.preset.glowHex)
 
         bodyShape.fillColor = SKColor(white: 0.08, alpha: 1)
         bodyShape.strokeColor = glowColor
@@ -61,7 +61,7 @@ final class BeybladeNode: SKNode {
 
         nameLabel.fontSize = 11
         nameLabel.fontColor = SKColor(white: 1, alpha: 0.8)
-        nameLabel.text = entity.preset.name
+        nameLabel.text = topEntity.preset.name
         nameLabel.position = CGPoint(x: 0, y: -r - 16)
         addChild(nameLabel)
 
@@ -81,9 +81,9 @@ final class BeybladeNode: SKNode {
     }
 
     func syncVisual() {
-        position = entity.position
-        finLayer.zRotation = entity.spinAngle
-        let shake = entity.wobble * 4
+        position = topEntity.position
+        finLayer.zRotation = topEntity.spinAngle
+        let shake = topEntity.wobble * 4
         if shake > 0.1 {
             bodyShape.position = CGPoint(x: CGFloat.random(in: -shake...shake), y: CGFloat.random(in: -shake...shake))
         }
@@ -91,14 +91,14 @@ final class BeybladeNode: SKNode {
     }
 
     private func updateStaminaRing() {
-        let r = entity.preset.radius + 10
-        let frac = max(0, min(1, entity.stamina / 100))
+        let r = topEntity.preset.radius + 10
+        let frac = max(0, min(1, topEntity.stamina / 100))
         let start: CGFloat = .pi / 2
         let end = start - frac * 2 * .pi
         let path = CGMutablePath()
         path.addArc(center: .zero, radius: r, startAngle: start, endAngle: end, clockwise: true)
         staminaRing.path = path
-        staminaRing.strokeColor = frac < 0.25 ? SKColor(hex: "#ff4d4d") : SKColor(hex: entity.preset.glowHex)
+        staminaRing.strokeColor = frac < 0.25 ? SKColor(hex: "#ff4d4d") : SKColor(hex: topEntity.preset.glowHex)
     }
 
     func playLaunchPulse() {
@@ -107,8 +107,8 @@ final class BeybladeNode: SKNode {
     }
 
     func playBoostPulse() {
-        let flash = SKShapeNode(circleOfRadius: entity.preset.radius * 1.4)
-        flash.strokeColor = SKColor(hex: entity.preset.glowHex)
+        let flash = SKShapeNode(circleOfRadius: topEntity.preset.radius * 1.4)
+        flash.strokeColor = SKColor(hex: topEntity.preset.glowHex)
         flash.lineWidth = 3
         flash.fillColor = .clear
         flash.glowWidth = 6
@@ -122,9 +122,9 @@ final class BeybladeNode: SKNode {
     /// The top's guardian spirit bursting out — bigger and brighter than a
     /// regular boost pulse, marking a Special Move.
     func playSpecialBurst() {
-        let glowColor = SKColor(hex: entity.preset.glowHex)
+        let glowColor = SKColor(hex: topEntity.preset.glowHex)
         for i in 0..<3 {
-            let ring = SKShapeNode(circleOfRadius: entity.preset.radius)
+            let ring = SKShapeNode(circleOfRadius: topEntity.preset.radius)
             ring.strokeColor = glowColor
             ring.lineWidth = 4
             ring.fillColor = .clear
@@ -139,7 +139,7 @@ final class BeybladeNode: SKNode {
                 .removeFromParent(),
             ]))
         }
-        let core = SKShapeNode(circleOfRadius: entity.preset.radius * 1.3)
+        let core = SKShapeNode(circleOfRadius: topEntity.preset.radius * 1.3)
         core.fillColor = glowColor
         core.strokeColor = .clear
         core.alpha = 0.6
@@ -156,15 +156,15 @@ final class BeybladeNode: SKNode {
                 .group([.scale(to: 0.15, duration: 0.6), .rotate(byAngle: .pi * 2.2, duration: 0.6), .fadeOut(withDuration: 0.6)]),
             ]))
         case .ringOut:
-            let dir = CGVector(dx: entity.velocity.dx, dy: entity.velocity.dy)
+            let dir = CGVector(dx: topEntity.velocity.dx, dy: topEntity.velocity.dy)
             let len = max(1, hypot(dir.dx, dir.dy))
             let fly = CGVector(dx: dir.dx / len * 240, dy: dir.dy / len * 240)
             run(.sequence([
                 .group([.moveBy(x: fly.dx, y: fly.dy, duration: 0.5), .fadeOut(withDuration: 0.5), .scale(to: 0.6, duration: 0.5)]),
             ]))
         case .burst:
-            let burst = SKShapeNode(circleOfRadius: entity.preset.radius)
-            burst.fillColor = SKColor(hex: entity.preset.glowHex)
+            let burst = SKShapeNode(circleOfRadius: topEntity.preset.radius)
+            burst.fillColor = SKColor(hex: topEntity.preset.glowHex)
             burst.strokeColor = .clear
             burst.alpha = 0.8
             addChild(burst)

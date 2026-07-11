@@ -7,6 +7,10 @@ extension GameScene {
 
     func tick(dt: CGFloat, time: CGFloat) {
         guard phase == .battle, !gamePaused else { return }
+        // The guest doesn't run its own physics — the host is authoritative and streams state
+        // snapshots (see mpApplyRemoteState); running a second, independently-diverging
+        // simulation here would fight the incoming data.
+        if isOnline, mp.role == "guest" { return }
         if let remaining = pendingRoundEnd {
             let next = remaining - dt
             if next <= 0 {
@@ -37,7 +41,8 @@ extension GameScene {
         resolveWallCollision(player)
         resolveWallCollision(cpu)
         resolveTopCollision()
-        if !isLocal2P { updateCPUAI(dt: dt) }
+        if !isLocal2P, !isOnline { updateCPUAI(dt: dt) }
+        if isOnline, mp.role == "host" { mpPushHostState() }
     }
 
     private func resolveWallCollision(_ e: BeybladeEntity) {
@@ -182,10 +187,23 @@ extension GameScene {
             if playerWins > cpuWins { SoundEngine.shared.playMatchWin() } else { SoundEngine.shared.playRoundLose() }
             recordMatchResult(playerWon: playerWins > cpuWins)
             showMatchOverOverlay()
+            if isOnline, mp.role == "host" {
+                mp.updateRoom([
+                    "status": "finished", "phase": "matchOver",
+                    "hostWins": playerWins, "guestWins": cpuWins,
+                    "result": playerWins > cpuWins ? "host" : "guest",
+                ])
+            }
         } else {
             phase = .roundResult
             if winner === player { SoundEngine.shared.playRoundWin() } else { SoundEngine.shared.playRoundLose() }
             showRoundResultOverlay(winner: winner)
+            if isOnline, mp.role == "host" {
+                mp.updateRoom([
+                    "phase": "roundResult", "hostWins": playerWins, "guestWins": cpuWins,
+                    "lastRoundWinner": winner === player ? "host" : "guest",
+                ])
+            }
         }
     }
 }

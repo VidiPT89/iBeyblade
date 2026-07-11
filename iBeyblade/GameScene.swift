@@ -9,7 +9,7 @@ enum Difficulty: String, CaseIterable {
 }
 
 enum MatchMode {
-    case vsCPU, vsPlayer
+    case vsCPU, vsPlayer, online
 }
 
 enum MenuStep {
@@ -90,6 +90,13 @@ final class GameScene: SKScene {
     var collisionCooldown: CGFloat = 0
     var battleElapsed: CGFloat = 0
     var suddenDeathActive: Bool = false
+
+    // MARK: Online multiplayer (see MultiplayerService.swift, GameScene+Multiplayer.swift)
+
+    var onlineActive = false
+    var onlineMatched = false
+    var onlineMyReady = false
+    var onlineBattleStarted = false
 
     var player: BeybladeEntity!
     var cpu: BeybladeEntity!
@@ -211,6 +218,26 @@ final class GameScene: SKScene {
     var tutorialSkipLabel: SKLabelNode?
     var tutorialDots: [SKShapeNode] = []
 
+    // Online lobby (see GameScene+Multiplayer.swift)
+    var lobbyPanel: SKNode?
+    var lobbyBg: SKShapeNode?
+    var lobbyStatusLabel: SKLabelNode?
+    var lobbyIdleNode: SKNode?
+    var lobbyCreateBg: SKShapeNode?
+    var lobbyCreateLabel: SKLabelNode?
+    var lobbyJoinBg: SKShapeNode?
+    var lobbyJoinLabel: SKLabelNode?
+    var lobbyQuickBg: SKShapeNode?
+    var lobbyQuickLabel: SKLabelNode?
+    var lobbyWaitingNode: SKNode?
+    var lobbyWaitingLabel: SKLabelNode?
+    var lobbyCodeLabel: SKLabelNode?
+    var lobbyCancelBg: SKShapeNode?
+    var lobbyCancelLabel: SKLabelNode?
+    var onlineStatusLabel: SKLabelNode?
+    var topPanelTopY: CGFloat = 0
+    var topPanelBottomY: CGFloat = 0
+
     // Ambient background
     struct Mote { let node: SKShapeNode; let speed: CGFloat; var phase: CGFloat }
     var motes: [Mote] = []
@@ -237,6 +264,7 @@ final class GameScene: SKScene {
         buildEntities()
         buildHUD()
         buildMenu()
+        buildLobbyOverlay()
         buildLaunchOverlay()
         buildPauseOverlay()
         buildRoundResultOverlay()
@@ -250,6 +278,7 @@ final class GameScene: SKScene {
 
         showMenu()
         playSplash()
+        mpWireCallbacks()
 
         view.isMultipleTouchEnabled = true
     }
@@ -283,6 +312,7 @@ final class GameScene: SKScene {
 
         layoutHUD(size: size)
         layoutMenu(size: size)
+        layoutLobbyPanel(size: size)
         layoutLaunchOverlay(size: size)
         layoutPauseOverlay(size: size)
         layoutRoundResultOverlay(size: size)
@@ -391,8 +421,8 @@ final class GameScene: SKScene {
     func buildEntities() {
         player = BeybladeEntity(preset: BeybladePresets.all[playerPresetIndex], isPlayer: true)
         cpu = BeybladeEntity(preset: BeybladePresets.all[cpuPresetIndex], isPlayer: false)
-        playerNode = BeybladeNode(entity: player)
-        cpuNode = BeybladeNode(entity: cpu)
+        playerNode = BeybladeNode(topEntity: player)
+        cpuNode = BeybladeNode(topEntity: cpu)
         entitiesContainer.addChild(cpuNode)
         entitiesContainer.addChild(playerNode)
     }
