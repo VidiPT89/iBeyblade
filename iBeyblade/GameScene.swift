@@ -108,6 +108,11 @@ final class GameScene: SKScene {
     var arenaFloor: SKShapeNode!
     var arenaRim: SKShapeNode!
     var arenaRimGlow: SKShapeNode!
+    var arenaBowlRings: [SKShapeNode] = []
+    var arenaTargetRingOuter: SKShapeNode!
+    var arenaTargetRingInner: SKShapeNode!
+    var arenaCrossH: SKShapeNode!
+    var arenaCrossV: SKShapeNode!
 
     let entitiesContainer = SKNode()
     let sparksContainer = SKNode()
@@ -290,11 +295,52 @@ final class GameScene: SKScene {
 
     // MARK: Arena
 
+    /// Radius fractions and colors for the concentric rings that fake a
+    /// sloped stadium bowl — real Beyblade arenas dip toward the center, so
+    /// each inner ring reads a little darker/deeper than the one outside it.
+    private static let bowlRingFractions: [(fraction: CGFloat, hex: String)] = [
+        (0.86, "#0a0c1c"), (0.72, "#08091a"), (0.58, "#060815"), (0.44, "#050710"), (0.30, "#04050c"),
+    ]
+
     func buildArena() {
         arenaFloor = SKShapeNode()
         arenaFloor.fillColor = SKColor(hex: "#0d0f22")
         arenaFloor.strokeColor = .clear
         arenaContainer.addChild(arenaFloor)
+
+        for (_, hex) in GameScene.bowlRingFractions {
+            let ring = SKShapeNode()
+            ring.fillColor = SKColor(hex: hex)
+            ring.strokeColor = .clear
+            arenaContainer.addChild(ring)
+            arenaBowlRings.append(ring)
+        }
+
+        arenaTargetRingOuter = SKShapeNode()
+        arenaTargetRingOuter.strokeColor = SKColor(hex: "#ff5a5a")
+        arenaTargetRingOuter.fillColor = .clear
+        arenaTargetRingOuter.lineWidth = 1.5
+        arenaTargetRingOuter.alpha = 0.3
+        arenaContainer.addChild(arenaTargetRingOuter)
+
+        arenaTargetRingInner = SKShapeNode()
+        arenaTargetRingInner.strokeColor = SKColor(hex: "#ff5a5a")
+        arenaTargetRingInner.fillColor = .clear
+        arenaTargetRingInner.lineWidth = 1.5
+        arenaTargetRingInner.alpha = 0.3
+        arenaContainer.addChild(arenaTargetRingInner)
+
+        arenaCrossH = SKShapeNode()
+        arenaCrossH.strokeColor = SKColor(hex: "#4d78ff")
+        arenaCrossH.lineWidth = 1.5
+        arenaCrossH.alpha = 0.3
+        arenaContainer.addChild(arenaCrossH)
+
+        arenaCrossV = SKShapeNode()
+        arenaCrossV.strokeColor = SKColor(hex: "#4d78ff")
+        arenaCrossV.lineWidth = 1.5
+        arenaCrossV.alpha = 0.3
+        arenaContainer.addChild(arenaCrossV)
 
         arenaRimGlow = SKShapeNode()
         arenaRimGlow.strokeColor = SKColor(hex: "#4d78ff")
@@ -315,10 +361,29 @@ final class GameScene: SKScene {
     }
 
     func redrawArena() {
-        let rect = CGRect(x: arenaCenter.x - arenaRadius, y: arenaCenter.y - arenaRadius, width: arenaRadius * 2, height: arenaRadius * 2)
-        arenaFloor.path = CGPath(ellipseIn: rect, transform: nil)
-        arenaRimGlow.path = CGPath(ellipseIn: rect, transform: nil)
-        arenaRim.path = CGPath(ellipseIn: rect, transform: nil)
+        func circlePath(_ r: CGFloat) -> CGPath {
+            CGPath(ellipseIn: CGRect(x: arenaCenter.x - r, y: arenaCenter.y - r, width: r * 2, height: r * 2), transform: nil)
+        }
+
+        arenaFloor.path = circlePath(arenaRadius)
+        for (i, ring) in arenaBowlRings.enumerated() {
+            ring.path = circlePath(arenaRadius * GameScene.bowlRingFractions[i].fraction)
+        }
+        arenaTargetRingOuter.path = circlePath(arenaRadius * 0.5)
+        arenaTargetRingInner.path = circlePath(arenaRadius * 0.24)
+
+        let crossR = arenaRadius * 0.5
+        let hPath = CGMutablePath()
+        hPath.move(to: CGPoint(x: arenaCenter.x - crossR, y: arenaCenter.y))
+        hPath.addLine(to: CGPoint(x: arenaCenter.x + crossR, y: arenaCenter.y))
+        arenaCrossH.path = hPath
+        let vPath = CGMutablePath()
+        vPath.move(to: CGPoint(x: arenaCenter.x, y: arenaCenter.y - crossR))
+        vPath.addLine(to: CGPoint(x: arenaCenter.x, y: arenaCenter.y + crossR))
+        arenaCrossV.path = vPath
+
+        arenaRimGlow.path = circlePath(arenaRadius)
+        arenaRim.path = circlePath(arenaRadius)
     }
 
     // MARK: Entities

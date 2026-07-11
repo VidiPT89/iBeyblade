@@ -85,7 +85,7 @@ final class BeybladeEntity {
     /// Autonomous per-frame steering + spin decay. Called before wall/top
     /// collision resolution each simulation step. `decayMultiplier` ramps up
     /// during Sudden Death so every round is guaranteed to end.
-    func step(dt: CGFloat, opponent: BeybladeEntity, arenaCenter: CGPoint, time: CGFloat, decayMultiplier: CGFloat = 1) {
+    func step(dt: CGFloat, opponent: BeybladeEntity, arenaCenter: CGPoint, arenaRadius: CGFloat, time: CGFloat, decayMultiplier: CGFloat = 1) {
         guard launched, isAlive else { return }
 
         let decayRate: CGFloat = 5.2 * (1.05 - preset.stamina) * decayMultiplier
@@ -120,6 +120,19 @@ final class BeybladeEntity {
         let targetSpeed: CGFloat = (70 + 90 * staminaFrac) * (0.6 + preset.aggression * 0.4)
         velocity.dx += steer.dx * targetSpeed * 0.9 * dt
         velocity.dy += steer.dy * targetSpeed * 0.9 * dt
+
+        // Real stadiums dish down toward the middle, so a top's own weight
+        // drags it back toward the center — barely noticeable near the
+        // middle, strong enough near the rim to matter, exactly like riding
+        // the slope of a real Beyblade arena.
+        let toCenter = CGVector(dx: arenaCenter.x - position.x, dy: arenaCenter.y - position.y)
+        let distFromCenter = hypot(toCenter.dx, toCenter.dy)
+        if distFromCenter > 0.001, arenaRadius > 0 {
+            let slopeT = min(1, distFromCenter / arenaRadius)
+            let slopePull: CGFloat = 46 * slopeT * slopeT
+            velocity.dx += (toCenter.dx / distFromCenter) * slopePull * dt
+            velocity.dy += (toCenter.dy / distFromCenter) * slopePull * dt
+        }
 
         let speed = hypot(velocity.dx, velocity.dy)
         let maxSpeed: CGFloat = 260

@@ -24,8 +24,8 @@ extension GameScene {
         }
         let decayMultiplier: CGFloat = suddenDeathActive ? GameConfig.suddenDeathDecayMultiplier : 1
 
-        player.step(dt: dt, opponent: cpu, arenaCenter: arenaCenter, time: time, decayMultiplier: decayMultiplier)
-        cpu.step(dt: dt, opponent: player, arenaCenter: arenaCenter, time: time, decayMultiplier: decayMultiplier)
+        player.step(dt: dt, opponent: cpu, arenaCenter: arenaCenter, arenaRadius: arenaRadius, time: time, decayMultiplier: decayMultiplier)
+        cpu.step(dt: dt, opponent: player, arenaCenter: arenaCenter, arenaRadius: arenaRadius, time: time, decayMultiplier: decayMultiplier)
 
         // Stamina can hit zero from plain decay (not just a collision hit) —
         // especially once Sudden Death ramps decay up — so this has to be
