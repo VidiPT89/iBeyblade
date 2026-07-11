@@ -30,4 +30,8 @@ final class HUDNodes {
     let langHit = SKShapeNode(rectOf: CGSize(width: 44, height: 40))
     let pauseButton = SKShapeNode(rectOf: CGSize(width: 48, height: 40), cornerRadius: 8)
     let pauseLabel = SKLabelNode(fontNamed: "Menlo-Bold")
+    /// Always-visible shortcut back to the main menu during a match, so
+    /// quitting a bot fight doesn't require pausing first.
+    let homeButton = SKShapeNode(rectOf: CGSize(width: 48, height: 40), cornerRadius: 8)
+    let homeLabel = SKLabelNode(fontNamed: "Menlo-Bold")
 }

@@ -76,12 +76,21 @@ extension GameScene {
         hud.pauseLabel.horizontalAlignmentMode = .center
         hud.pauseLabel.text = "II"
 
+        hud.homeButton.fillColor = SKColor(white: 1, alpha: 0.08)
+        hud.homeButton.strokeColor = SKColor(hex: "#4d78ff")
+        hud.homeLabel.fontSize = 16
+        hud.homeLabel.fontColor = .white
+        hud.homeLabel.verticalAlignmentMode = .center
+        hud.homeLabel.horizontalAlignmentMode = .center
+        hud.homeLabel.text = "⌂"
+
         for n in [hud.playerStaminaBg, hud.playerStaminaFill, hud.playerNameLabel,
                   hud.cpuStaminaBg, hud.cpuStaminaFill, hud.cpuNameLabel,
                   hud.roundLabel, hud.suddenDeathLabel,
                   hud.boostButton, hud.boostLabel, hud.boostChargesLabel,
                   hud.boostButton2, hud.boostLabel2, hud.boostChargesLabel2,
-                  hud.langButton, hud.langHit, hud.pauseButton, hud.pauseLabel] {
+                  hud.langButton, hud.langHit, hud.pauseButton, hud.pauseLabel,
+                  hud.homeButton, hud.homeLabel] {
             hud.container.addChild(n)
         }
         addChild(hud.container)
@@ -89,6 +98,8 @@ extension GameScene {
         buttons.append(UIButton(node: hud.langHit, id: "btn-lang"))
         buttons.append(UIButton(node: hud.pauseButton, id: "btn-pause"))
         buttons.append(UIButton(node: hud.pauseLabel, id: "btn-pause"))
+        buttons.append(UIButton(node: hud.homeButton, id: "btn-home"))
+        buttons.append(UIButton(node: hud.homeLabel, id: "btn-home"))
         buttons.append(UIButton(node: hud.boostButton, id: "btn-boost"))
         buttons.append(UIButton(node: hud.boostLabel, id: "btn-boost"))
         buttons.append(UIButton(node: hud.boostButton2, id: "btn-boost2"))
@@ -108,10 +119,12 @@ extension GameScene {
         hud.roundLabel.position = CGPoint(x: size.width / 2, y: topY - 4)
         hud.suddenDeathLabel.position = CGPoint(x: size.width / 2, y: topY - 22)
 
-        hud.langButton.position = CGPoint(x: size.width / 2 - 60, y: size.height - topSafeInset - 60)
+        hud.langButton.position = CGPoint(x: size.width / 2 - 84, y: size.height - topSafeInset - 60)
         hud.langHit.position = hud.langButton.position
-        hud.pauseButton.position = CGPoint(x: size.width / 2 + 60, y: size.height - topSafeInset - 60)
+        hud.pauseButton.position = CGPoint(x: size.width / 2, y: size.height - topSafeInset - 60)
         hud.pauseLabel.position = hud.pauseButton.position
+        hud.homeButton.position = CGPoint(x: size.width / 2 + 84, y: size.height - topSafeInset - 60)
+        hud.homeLabel.position = hud.homeButton.position
 
         hud.boostButton.position = CGPoint(x: size.width - 60, y: 60 + bottomSafeInset)
         hud.boostLabel.position = CGPoint(x: hud.boostButton.position.x, y: hud.boostButton.position.y + 6)
@@ -148,6 +161,8 @@ extension GameScene {
 
         hud.pauseButton.isHidden = phase != .battle && phase != .launch
         hud.pauseLabel.isHidden = hud.pauseButton.isHidden
+        hud.homeButton.isHidden = hud.pauseButton.isHidden
+        hud.homeLabel.isHidden = hud.pauseButton.isHidden
     }
 
     private func updateSpecialButton(_ button: SKShapeNode, charges: SKLabelNode, gauge: CGFloat) {
@@ -997,6 +1012,11 @@ extension GameScene {
             gamePaused = false
             pauseOverlay?.isHidden = true
         case "pause-menu":
+            pauseOverlay?.isHidden = true
+            showMenu()
+        case "btn-home":
+            guard phase == .battle || phase == .launch else { return }
+            gamePaused = false
             pauseOverlay?.isHidden = true
             showMenu()
         case "btn-boost":

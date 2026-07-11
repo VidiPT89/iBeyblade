@@ -124,12 +124,16 @@ final class BeybladeEntity {
         // Real stadiums dish down toward the middle, so a top's own weight
         // drags it back toward the center — barely noticeable near the
         // middle, strong enough near the rim to matter, exactly like riding
-        // the slope of a real Beyblade arena.
+        // the slope of a real Beyblade arena. A tiring top (lower stamina)
+        // has less gyroscopic force resisting the slope, so it slides in
+        // more easily — mirroring how real tops get pulled to the middle
+        // as their spin dies down.
         let toCenter = CGVector(dx: arenaCenter.x - position.x, dy: arenaCenter.y - position.y)
         let distFromCenter = hypot(toCenter.dx, toCenter.dy)
         if distFromCenter > 0.001, arenaRadius > 0 {
             let slopeT = min(1, distFromCenter / arenaRadius)
-            let slopePull: CGFloat = 46 * slopeT * slopeT
+            let staminaWeakness: CGFloat = 1.6 - staminaFrac * 0.8
+            let slopePull: CGFloat = 170 * slopeT * staminaWeakness
             velocity.dx += (toCenter.dx / distFromCenter) * slopePull * dt
             velocity.dy += (toCenter.dy / distFromCenter) * slopePull * dt
         }
