@@ -85,18 +85,26 @@ extension GameScene {
         buttons.append(UIButton(node: cancelBg, id: "lobby-cancel"))
 
         // Create / Join / Quick Play — sit in the same row the single Start button uses, visible
-        // only while in Online mode and not yet committed to a room.
+        // only while in Online mode and not yet committed to a room. Hidden by default: the app
+        // always launches in vs CPU mode, and these must not overlap the Start button until
+        // Online mode is actually selected.
         let (createBg, createLabel) = makePill(width: 104, fontSize: 11)
+        createBg.isHidden = true
+        createLabel.isHidden = true
         overlay.addChild(createBg); overlay.addChild(createLabel)
         lobbyCreateBg = createBg; lobbyCreateLabel = createLabel
         buttons.append(UIButton(node: createBg, id: "lobby-create"))
 
         let (joinBg, joinLabel) = makePill(width: 104, fontSize: 11)
+        joinBg.isHidden = true
+        joinLabel.isHidden = true
         overlay.addChild(joinBg); overlay.addChild(joinLabel)
         lobbyJoinBg = joinBg; lobbyJoinLabel = joinLabel
         buttons.append(UIButton(node: joinBg, id: "lobby-join"))
 
         let (quickBg, quickLabel) = makePill(width: 104, fontSize: 11)
+        quickBg.isHidden = true
+        quickLabel.isHidden = true
         overlay.addChild(quickBg); overlay.addChild(quickLabel)
         lobbyQuickBg = quickBg; lobbyQuickLabel = quickLabel
         buttons.append(UIButton(node: quickBg, id: "lobby-quick"))

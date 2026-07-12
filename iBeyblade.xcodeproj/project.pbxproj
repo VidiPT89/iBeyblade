@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		17E3C0EED99E3EC01636307A /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 7DFDA596B959506EF2E236ED /* FirebaseFirestore */; };
 		2362C890DAE20D8CB112A0F5 /* GameSKView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15F4B313C2F9056982A6F01F /* GameSKView.swift */; };
+		255E6FC266BF1A61668FD1A8 /* OnlineFlowUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB6E7FE15E0019E0AA0CD253 /* OnlineFlowUITests.swift */; };
 		387F1983C1738820E27C1DA9 /* GameScene+Tutorial.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B9BFF51C9A161E24C10EF90 /* GameScene+Tutorial.swift */; };
 		40D84F41808EB4DC14DF393F /* GameScene+UI.swift in Sources */ = {isa = PBXBuildFile; fileRef = F84B6D8EEC001A5DDE1F5367 /* GameScene+UI.swift */; };
 		53B09520C112DD505FE42BCE /* SoundEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 889DDD4DCBD1EF14933134BA /* SoundEngine.swift */; };
@@ -33,6 +34,16 @@
 		FFE6995E64121079DF0F2FD1 /* ColorHex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 681E70854A2C6E6AA34BAE93 /* ColorHex.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		79D4BB27A724586644569D7A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 7ED7DFB5E8EB177F156A080A /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 64B9031637348EF2B26BDB7C;
+			remoteInfo = iBeyblade;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		01394A9E35442E8F970F8C56 /* BeybladeTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BeybladeTypes.swift; sourceTree = "<group>"; };
 		0B9BFF51C9A161E24C10EF90 /* GameScene+Tutorial.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GameScene+Tutorial.swift"; sourceTree = "<group>"; };
@@ -51,7 +62,9 @@
 		9F17F37B1058029514F9722B /* iBeyblade.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = iBeyblade.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A9EED8532A9397E0833A6C53 /* HUDNodes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HUDNodes.swift; sourceTree = "<group>"; };
 		BAEBB8126E07152236C8015B /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		C4C618CBFBF8145E36FFD6E6 /* iBeybladeUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = iBeybladeUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D70BDE08B18F187B4C6C5380 /* Localization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Localization.swift; sourceTree = "<group>"; };
+		DB6E7FE15E0019E0AA0CD253 /* OnlineFlowUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnlineFlowUITests.swift; sourceTree = "<group>"; };
 		DDD34D8CE6B377FBCCEB2744 /* Entities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Entities.swift; sourceTree = "<group>"; };
 		E334C20B1CF05023CF9D7402 /* Haptics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Haptics.swift; sourceTree = "<group>"; };
 		F84B6D8EEC001A5DDE1F5367 /* GameScene+UI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GameScene+UI.swift"; sourceTree = "<group>"; };
@@ -72,10 +85,19 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		2985D22B9C05CD89D664DC5C /* iBeybladeUITests */ = {
+			isa = PBXGroup;
+			children = (
+				DB6E7FE15E0019E0AA0CD253 /* OnlineFlowUITests.swift */,
+			);
+			path = iBeybladeUITests;
+			sourceTree = "<group>";
+		};
 		2C396ACFE16A3A4DD53BAEF9 = {
 			isa = PBXGroup;
 			children = (
 				8509C25911CD372B95590B4A /* iBeyblade */,
+				2985D22B9C05CD89D664DC5C /* iBeybladeUITests */,
 				B275D6A987A0EE1B1CF724D0 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -113,6 +135,7 @@
 			isa = PBXGroup;
 			children = (
 				9F17F37B1058029514F9722B /* iBeyblade.app */,
+				C4C618CBFBF8145E36FFD6E6 /* iBeybladeUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -141,6 +164,24 @@
 			productReference = 9F17F37B1058029514F9722B /* iBeyblade.app */;
 			productType = "com.apple.product-type.application";
 		};
+		E4BFB17AEDB906B40C0466C7 /* iBeybladeUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 722ABC1F5426A22418FDD365 /* Build configuration list for PBXNativeTarget "iBeybladeUITests" */;
+			buildPhases = (
+				F8B187B1175310FBAE4B667F /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				67989BFEF28B3D09CB8D37B3 /* PBXTargetDependency */,
+			);
+			name = iBeybladeUITests;
+			packageProductDependencies = (
+			);
+			productName = iBeybladeUITests;
+			productReference = C4C618CBFBF8145E36FFD6E6 /* iBeybladeUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -152,6 +193,10 @@
 				TargetAttributes = {
 					64B9031637348EF2B26BDB7C = {
 						ProvisioningStyle = Automatic;
+					};
+					E4BFB17AEDB906B40C0466C7 = {
+						ProvisioningStyle = Automatic;
+						TestTargetID = 64B9031637348EF2B26BDB7C;
 					};
 				};
 			};
@@ -173,6 +218,7 @@
 			projectRoot = "";
 			targets = (
 				64B9031637348EF2B26BDB7C /* iBeyblade */,
+				E4BFB17AEDB906B40C0466C7 /* iBeybladeUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -190,6 +236,14 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		F8B187B1175310FBAE4B667F /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				255E6FC266BF1A61668FD1A8 /* OnlineFlowUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		FABD98C2047216D708D102A0 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -218,6 +272,14 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		67989BFEF28B3D09CB8D37B3 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 64B9031637348EF2B26BDB7C /* iBeyblade */;
+			targetProxy = 79D4BB27A724586644569D7A /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		2A7A37D7CA362234077795DD /* Release */ = {
@@ -276,6 +338,26 @@
 			};
 			name = Release;
 		};
+		4BBF1153F47E743B1BE6A183 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.vidi.iBeybladeUITests;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = iBeyblade;
+			};
+			name = Release;
+		};
 		4FAAF057E35B84B876A1D0E7 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -294,6 +376,26 @@
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
+		};
+		681D3A44377C69BC4E097670 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.vidi.iBeybladeUITests;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = iBeyblade;
+			};
+			name = Debug;
 		};
 		CD087B852CF34464E6AB8B15 /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -385,6 +487,15 @@
 			buildConfigurations = (
 				F997425FE0E5160FFAC9BAE1 /* Debug */,
 				2A7A37D7CA362234077795DD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		722ABC1F5426A22418FDD365 /* Build configuration list for PBXNativeTarget "iBeybladeUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				681D3A44377C69BC4E097670 /* Debug */,
+				4BBF1153F47E743B1BE6A183 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
