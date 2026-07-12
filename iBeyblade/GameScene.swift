@@ -94,8 +94,6 @@ final class GameScene: SKScene {
     // MARK: Online multiplayer (see MultiplayerService.swift, GameScene+Multiplayer.swift)
 
     var onlineActive = false
-    var onlineMatched = false
-    var onlineMyReady = false
     var onlineBattleStarted = false
 
     var player: BeybladeEntity!
@@ -222,19 +220,16 @@ final class GameScene: SKScene {
     var lobbyPanel: SKNode?
     var lobbyBg: SKShapeNode?
     var lobbyStatusLabel: SKLabelNode?
-    var lobbyIdleNode: SKNode?
     var lobbyCreateBg: SKShapeNode?
     var lobbyCreateLabel: SKLabelNode?
     var lobbyJoinBg: SKShapeNode?
     var lobbyJoinLabel: SKLabelNode?
     var lobbyQuickBg: SKShapeNode?
     var lobbyQuickLabel: SKLabelNode?
-    var lobbyWaitingNode: SKNode?
     var lobbyWaitingLabel: SKLabelNode?
     var lobbyCodeLabel: SKLabelNode?
     var lobbyCancelBg: SKShapeNode?
     var lobbyCancelLabel: SKLabelNode?
-    var onlineStatusLabel: SKLabelNode?
     var topPanelTopY: CGFloat = 0
     var topPanelBottomY: CGFloat = 0
 

@@ -25,6 +25,10 @@ private func mpInt(_ data: [String: Any], _ key: String) -> Int? {
 /// Play), and — once a match starts — streams/applies battle state so a "host" and "guest"
 /// device can share one live match. See MultiplayerService.swift for why the host is
 /// authoritative and the guest only renders incoming snapshots.
+///
+/// The top picker is shown up front, alongside Create/Join/Quick Play (in the row the single
+/// Start button normally occupies) — so picking a top and committing to a room happen as one
+/// step, with no separate "opponent joined, now pick, now confirm ready" handshake.
 extension GameScene {
 
     var isOnline: Bool { matchMode == .online }
@@ -33,8 +37,24 @@ extension GameScene {
 
     // MARK: Lobby UI construction
 
+    private func makePill(strokeHex: String = "#4d78ff", width: CGFloat = 220, fontSize: CGFloat = 13) -> (SKShapeNode, SKLabelNode) {
+        let b = SKShapeNode(rectOf: CGSize(width: width, height: 38), cornerRadius: 10)
+        b.strokeColor = SKColor(hex: strokeHex)
+        b.lineWidth = 1.5
+        b.fillColor = SKColor(white: 1, alpha: 0.06)
+        let l = SKLabelNode(fontNamed: "Menlo-Bold")
+        l.fontSize = fontSize
+        l.fontColor = .white
+        l.verticalAlignmentMode = .center
+        l.horizontalAlignmentMode = .center
+        return (b, l)
+    }
+
     func buildLobbyOverlay() {
         guard let overlay = menuOverlay else { return }
+
+        // Waiting panel — reuses the top-picker's rect, shown only once the host has committed
+        // (Create Room / Quick Play with no one else waiting) and their top is already locked in.
         let panel = SKNode()
         panel.isHidden = true
         overlay.addChild(panel)
@@ -47,74 +67,48 @@ extension GameScene {
         panel.addChild(bg)
         lobbyBg = bg
 
-        let status = SKLabelNode(fontNamed: "Menlo")
-        status.fontSize = 11
-        status.fontColor = SKColor(white: 1, alpha: 0.65)
-        status.numberOfLines = 2
-        status.preferredMaxLayoutWidth = 320
-        panel.addChild(status)
-        lobbyStatusLabel = status
-
-        let idleNode = SKNode()
-        panel.addChild(idleNode)
-        lobbyIdleNode = idleNode
-
-        func makeButton(strokeHex: String = "#4d78ff", width: CGFloat = 220) -> (SKShapeNode, SKLabelNode) {
-            let b = SKShapeNode(rectOf: CGSize(width: width, height: 38), cornerRadius: 10)
-            b.strokeColor = SKColor(hex: strokeHex)
-            b.lineWidth = 1.5
-            b.fillColor = SKColor(white: 1, alpha: 0.06)
-            let l = SKLabelNode(fontNamed: "Menlo-Bold")
-            l.fontSize = 13
-            l.fontColor = .white
-            l.verticalAlignmentMode = .center
-            l.horizontalAlignmentMode = .center
-            return (b, l)
-        }
-
-        let (createBg, createLabel) = makeButton()
-        idleNode.addChild(createBg); idleNode.addChild(createLabel)
-        lobbyCreateBg = createBg; lobbyCreateLabel = createLabel
-        buttons.append(UIButton(node: createBg, id: "lobby-create"))
-
-        let (joinBg, joinLabel) = makeButton()
-        idleNode.addChild(joinBg); idleNode.addChild(joinLabel)
-        lobbyJoinBg = joinBg; lobbyJoinLabel = joinLabel
-        buttons.append(UIButton(node: joinBg, id: "lobby-join"))
-
-        let (quickBg, quickLabel) = makeButton()
-        idleNode.addChild(quickBg); idleNode.addChild(quickLabel)
-        lobbyQuickBg = quickBg; lobbyQuickLabel = quickLabel
-        buttons.append(UIButton(node: quickBg, id: "lobby-quick"))
-
-        let waitingNode = SKNode()
-        waitingNode.isHidden = true
-        panel.addChild(waitingNode)
-        lobbyWaitingNode = waitingNode
-
         let waitingLabel = SKLabelNode(fontNamed: "Menlo")
-        waitingLabel.fontSize = 12
+        waitingLabel.fontSize = 13
         waitingLabel.fontColor = SKColor(white: 1, alpha: 0.75)
-        waitingNode.addChild(waitingLabel)
+        panel.addChild(waitingLabel)
         lobbyWaitingLabel = waitingLabel
 
         let codeLabel = SKLabelNode(fontNamed: "Menlo-Bold")
-        codeLabel.fontSize = 30
+        codeLabel.fontSize = 34
         codeLabel.fontColor = SKColor(hex: "#ffd27a")
-        waitingNode.addChild(codeLabel)
+        panel.addChild(codeLabel)
         lobbyCodeLabel = codeLabel
 
-        let (cancelBg, cancelLabel) = makeButton(strokeHex: "#ff5a3c", width: 160)
-        waitingNode.addChild(cancelBg); waitingNode.addChild(cancelLabel)
+        let (cancelBg, cancelLabel) = makePill(strokeHex: "#ff5a3c", width: 160)
+        panel.addChild(cancelBg); panel.addChild(cancelLabel)
         lobbyCancelBg = cancelBg; lobbyCancelLabel = cancelLabel
         buttons.append(UIButton(node: cancelBg, id: "lobby-cancel"))
 
-        let onlineStatus = SKLabelNode(fontNamed: "Menlo")
-        onlineStatus.fontSize = 12
-        onlineStatus.fontColor = SKColor(white: 1, alpha: 0.75)
-        onlineStatus.isHidden = true
-        overlay.addChild(onlineStatus)
-        onlineStatusLabel = onlineStatus
+        // Create / Join / Quick Play — sit in the same row the single Start button uses, visible
+        // only while in Online mode and not yet committed to a room.
+        let (createBg, createLabel) = makePill(width: 104, fontSize: 11)
+        overlay.addChild(createBg); overlay.addChild(createLabel)
+        lobbyCreateBg = createBg; lobbyCreateLabel = createLabel
+        buttons.append(UIButton(node: createBg, id: "lobby-create"))
+
+        let (joinBg, joinLabel) = makePill(width: 104, fontSize: 11)
+        overlay.addChild(joinBg); overlay.addChild(joinLabel)
+        lobbyJoinBg = joinBg; lobbyJoinLabel = joinLabel
+        buttons.append(UIButton(node: joinBg, id: "lobby-join"))
+
+        let (quickBg, quickLabel) = makePill(width: 104, fontSize: 11)
+        overlay.addChild(quickBg); overlay.addChild(quickLabel)
+        lobbyQuickBg = quickBg; lobbyQuickLabel = quickLabel
+        buttons.append(UIButton(node: quickBg, id: "lobby-quick"))
+
+        let status = SKLabelNode(fontNamed: "Menlo")
+        status.fontSize = 11
+        status.fontColor = SKColor(hex: "#ff5a5a")
+        status.numberOfLines = 2
+        status.preferredMaxLayoutWidth = 320
+        status.isHidden = true
+        overlay.addChild(status)
+        lobbyStatusLabel = status
     }
 
     func layoutLobbyPanel(size: CGSize) {
@@ -128,24 +122,25 @@ extension GameScene {
             cornerWidth: 18, cornerHeight: 18, transform: nil
         )
         let midY = (top + bottom) / 2
-        lobbyStatusLabel?.position = CGPoint(x: cx, y: top - 26)
-        lobbyCreateBg?.position = CGPoint(x: cx, y: midY + 40)
-        lobbyCreateLabel?.position = lobbyCreateBg?.position ?? .zero
-        lobbyJoinBg?.position = CGPoint(x: cx, y: midY - 6)
-        lobbyJoinLabel?.position = lobbyJoinBg?.position ?? .zero
-        lobbyQuickBg?.position = CGPoint(x: cx, y: midY - 52)
-        lobbyQuickLabel?.position = lobbyQuickBg?.position ?? .zero
-
         lobbyWaitingLabel?.position = CGPoint(x: cx, y: top - 34)
-        lobbyCodeLabel?.position = CGPoint(x: cx, y: midY + 6)
-        lobbyCancelBg?.position = CGPoint(x: cx, y: midY - 56)
+        lobbyCodeLabel?.position = CGPoint(x: cx, y: midY + 10)
+        lobbyCancelBg?.position = CGPoint(x: cx, y: midY - 60)
         lobbyCancelLabel?.position = lobbyCancelBg?.position ?? .zero
 
-        onlineStatusLabel?.position = CGPoint(x: cx, y: top + 16)
+        guard let start = buttons.first(where: { $0.id == "start-tap" })?.node else { return }
+        let rowY = start.position.y
+        let spacing: CGFloat = 112
+        lobbyCreateBg?.position = CGPoint(x: cx - spacing, y: rowY)
+        lobbyCreateLabel?.position = lobbyCreateBg?.position ?? .zero
+        lobbyJoinBg?.position = CGPoint(x: cx, y: rowY)
+        lobbyJoinLabel?.position = lobbyJoinBg?.position ?? .zero
+        lobbyQuickBg?.position = CGPoint(x: cx + spacing, y: rowY)
+        lobbyQuickLabel?.position = lobbyQuickBg?.position ?? .zero
+        lobbyStatusLabel?.position = CGPoint(x: cx, y: rowY - 36)
     }
 
-    /// Hides (or restores) the top-picker cards, paging controls and the Start/Ready button —
-    /// used while the online lobby (Create/Join/Quick Play) occupies that part of the menu.
+    /// Hides (or restores) the top-picker cards and paging controls — used once the online lobby
+    /// has moved on from "pick a top" to "waiting for opponent" or the battle itself.
     func setTopPickerHidden(_ hidden: Bool) {
         topPanel?.isHidden = hidden
         topSectionHeader?.isHidden = hidden
@@ -158,33 +153,45 @@ extension GameScene {
         pagePrevButton?.isHidden = hidden
         pageNextButton?.isHidden = hidden
         for dot in pageDots { dot.isHidden = hidden }
-        buttons.first(where: { $0.id == "start-tap" })?.node.isHidden = hidden
-        startLabel?.isHidden = hidden
+    }
+
+    /// Toggles between the single "TAP TO START" button (every other mode) and the Create/Join/
+    /// Quick Play trio (Online mode, before committing to a room).
+    private func showLobbyActionRow(_ show: Bool) {
+        lobbyCreateBg?.isHidden = !show
+        lobbyCreateLabel?.isHidden = !show
+        lobbyJoinBg?.isHidden = !show
+        lobbyJoinLabel?.isHidden = !show
+        lobbyQuickBg?.isHidden = !show
+        lobbyQuickLabel?.isHidden = !show
+        buttons.first(where: { $0.id == "start-tap" })?.node.isHidden = show
+        startLabel?.isHidden = show
     }
 
     func resetLobbyUI() {
-        lobbyIdleNode?.isHidden = false
-        lobbyWaitingNode?.isHidden = true
-        mpClearIdleStatus()
-        lobbyPanel?.isHidden = false
-        setTopPickerHidden(true)
-        onlineStatusLabel?.isHidden = true
-    }
-
-    private func mpShowWaiting(code: String) {
-        lobbyIdleNode?.isHidden = true
-        lobbyWaitingNode?.isHidden = false
-        lobbyCodeLabel?.text = code
-    }
-
-    private func mpShowMatched() {
-        onlineMatched = true
         lobbyPanel?.isHidden = true
+        mpClearIdleStatus()
+        lobbyStatusLabel?.isHidden = true
         setTopPickerHidden(false)
-        startLabel?.text = L.t("readyBtn")
-        onlineStatusLabel?.text = L.t("opponentJoined")
-        onlineStatusLabel?.isHidden = false
-        refreshMenuSelection()
+        showLobbyActionRow(true)
+    }
+
+    /// Called whenever leaving Online mode (switching to vs CPU/vs Player, or back to the menu) —
+    /// restores the normal single Start button and hides any lobby-specific UI.
+    func hideLobbyUI() {
+        showLobbyActionRow(false)
+        lobbyPanel?.isHidden = true
+        lobbyStatusLabel?.isHidden = true
+    }
+
+    /// Host-only: shown right after Create Room / Quick Play — the host's top was already
+    /// submitted with the room, so there's nothing left to pick, just wait for someone to join.
+    private func mpShowWaiting(code: String) {
+        setTopPickerHidden(true)
+        showLobbyActionRow(false)
+        lobbyStatusLabel?.isHidden = true
+        lobbyPanel?.isHidden = false
+        lobbyCodeLabel?.text = code
     }
 
     private func mpErrorMessage(_ error: Error) -> String {
@@ -200,12 +207,12 @@ extension GameScene {
 
     private func mpShowIdleError(_ error: Error) {
         lobbyStatusLabel?.text = mpErrorMessage(error)
-        lobbyStatusLabel?.fontColor = SKColor(hex: "#ff5a5a")
+        lobbyStatusLabel?.isHidden = false
     }
 
     private func mpClearIdleStatus() {
         lobbyStatusLabel?.text = ""
-        lobbyStatusLabel?.fontColor = SKColor(white: 1, alpha: 0.65)
+        lobbyStatusLabel?.isHidden = true
     }
 
     // MARK: Lobby button handlers
@@ -213,11 +220,12 @@ extension GameScene {
     func mpTapCreate() {
         guard MultiplayerService.configured else { mpShowIdleError(MPError.notConfigured); return }
         mpClearIdleStatus()
+        let topIndex = playerPresetIndex
         Task { @MainActor in
             do {
-                let code = try await self.mp.createRoom()
+                let res = try await self.mp.createRoom(topIndex: topIndex)
                 self.onlineActive = true
-                self.mpShowWaiting(code: code)
+                self.mpShowWaiting(code: res.code)
             } catch {
                 self.mpShowIdleError(error)
             }
@@ -232,14 +240,15 @@ extension GameScene {
     func mpTapQuickPlay() {
         guard MultiplayerService.configured else { mpShowIdleError(MPError.notConfigured); return }
         mpClearIdleStatus()
+        let topIndex = playerPresetIndex
         Task { @MainActor in
             do {
-                let res = try await self.mp.quickPlay()
+                let res = try await self.mp.quickPlay(topIndex: topIndex)
                 self.onlineActive = true
                 if res.isHost {
                     self.mpShowWaiting(code: res.code)
                 } else {
-                    self.mpShowMatched()
+                    self.mpBeginOnlineBattle(res.data)
                 }
             } catch {
                 self.mpShowIdleError(error)
@@ -272,12 +281,13 @@ extension GameScene {
             guard let self else { return }
             let code = (alert?.textFields?.first?.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
             guard !code.isEmpty else { return }
+            let topIndex = self.playerPresetIndex
             self.mpClearIdleStatus()
             Task { @MainActor in
                 do {
-                    _ = try await self.mp.joinRoom(code)
+                    let data = try await self.mp.joinRoom(code, topIndex: topIndex)
                     self.onlineActive = true
-                    self.mpShowMatched()
+                    self.mpBeginOnlineBattle(data) // the host's top is already in the room doc — start right away
                 } catch {
                     self.mpShowIdleError(error)
                 }
@@ -289,18 +299,12 @@ extension GameScene {
     func leaveOnlineRoom() {
         if onlineActive { mp.leaveRoom() }
         onlineActive = false
-        onlineMatched = false
-        onlineMyReady = false
         onlineBattleStarted = false
     }
 
     // MARK: Networking callbacks
 
     func mpWireCallbacks() {
-        mp.onOpponentJoined = { [weak self] in
-            guard let self else { return }
-            self.mpShowMatched()
-        }
         mp.onRoomUpdate = { [weak self] data in self?.mpHandleRoomUpdate(data) }
         mp.onRemoteState = { [weak self] data in self?.mpApplyRemoteState(data) }
         mp.onRemoteAction = { [weak self] type, payload in self?.mpApplyRemoteAction(type, payload: payload) }
@@ -349,7 +353,9 @@ extension GameScene {
     }
 
     /// First-round setup: creates local entities from the room's confirmed top picks and starts
-    /// the round. Called by both sides once `room.phase` becomes "launch" for the first time.
+    /// the round. Called by both sides once both `hostTopIndex`/`guestTopIndex` are known — for
+    /// the guest this fires immediately on a successful join/quick-play; for the host it fires
+    /// once the room listener sees a guest has claimed the room.
     private func mpBeginOnlineBattle(_ data: [String: Any]) {
         onlineBattleStarted = true
         let hostTop = mpInt(data, "hostTopIndex") ?? 0
@@ -362,16 +368,6 @@ extension GameScene {
         roundNumber = mpInt(data, "roundNumber") ?? 1
         startRound()
         if mp.role == "host" { mp.updateRoom(["phase": "launch"]) }
-    }
-
-    func mpConfirmReady() {
-        guard !onlineMyReady else { return }
-        onlineMyReady = true
-        setTopPickerHidden(true)
-        onlineStatusLabel?.text = L.t("waitingForOpponentPick")
-        onlineStatusLabel?.isHidden = false
-        let field: [String: Any] = mp.role == "host" ? ["hostTopIndex": playerPresetIndex] : ["guestTopIndex": playerPresetIndex]
-        mp.updateRoom(field)
     }
 
     func checkOnlineBothLaunched() {

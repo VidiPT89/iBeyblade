@@ -534,8 +534,7 @@ extension GameScene {
         if wasOnline {
             matchMode = .vsCPU
             setTopPickerHidden(false)
-            lobbyPanel?.isHidden = true
-            onlineStatusLabel?.isHidden = true
+            hideLobbyUI()
         }
         phase = .menu
         gamePaused = false
@@ -1001,7 +1000,6 @@ extension GameScene {
         lobbyQuickLabel?.text = L.t("quickPlayBtn")
         lobbyWaitingLabel?.text = L.t("waitingForOpponent")
         lobbyCancelLabel?.text = L.t("cancelBtn")
-        if isOnline, onlineMatched { startLabel?.text = L.t("readyBtn") }
 
         for diff in Difficulty.allCases {
             diffButtons[diff]?.label.text = L.t("diff\(diff.rawValue.prefix(1).uppercased() + diff.rawValue.dropFirst())")
@@ -1072,15 +1070,13 @@ extension GameScene {
             if matchMode == .online { leaveOnlineRoom() }
             matchMode = .vsCPU
             setTopPickerHidden(false)
-            lobbyPanel?.isHidden = true
-            onlineStatusLabel?.isHidden = true
+            hideLobbyUI()
             refreshTexts()
         case "mode-vsPlayer":
             if matchMode == .online { leaveOnlineRoom() }
             matchMode = .vsPlayer
             setTopPickerHidden(false)
-            lobbyPanel?.isHidden = true
-            onlineStatusLabel?.isHidden = true
+            hideLobbyUI()
             refreshTexts()
         case "mode-online":
             matchMode = .online
@@ -1097,9 +1093,7 @@ extension GameScene {
         case "page-prev": topPage = topPage == 0 ? 1 : 0; refreshTexts()
         case "page-next": topPage = topPage == 0 ? 1 : 0; refreshTexts()
         case "start-tap":
-            if isOnline {
-                mpConfirmReady()
-            } else if menuStep == .main, matchMode == .vsPlayer {
+            if menuStep == .main, matchMode == .vsPlayer {
                 menuStep = .pickPlayer2
                 refreshTexts()
             } else {

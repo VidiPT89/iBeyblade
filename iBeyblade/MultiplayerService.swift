@@ -7,9 +7,10 @@ enum MPError: Error {
     case notConfigured, roomNotFound, roomFull, roomFinished, createFailed, lobbyFull
 }
 
-struct MPQuickPlayResult {
+struct MPRoomResult {
     let code: String
     let isHost: Bool
+    let data: [String: Any]
 }
 
 /// Networking layer for Online mode: rooms, live battle state, input actions and presence over
@@ -75,11 +76,13 @@ final class MultiplayerService: ObservableObject {
         return result.user.uid
     }
 
-    private func freshRoomDoc(hostUid: String) -> [String: Any] {
+    /// The host's top is submitted immediately, atomically with the room — the host never sees a
+    /// separate "pick your top" step, only a waiting screen with the room code.
+    private func freshRoomDoc(hostUid: String, hostTopIndex: Int) -> [String: Any] {
         [
             "hostUid": hostUid, "guestUid": NSNull(),
             "status": "waiting", "phase": "picking",
-            "hostTopIndex": NSNull(), "guestTopIndex": NSNull(),
+            "hostTopIndex": hostTopIndex, "guestTopIndex": NSNull(),
             "hostWins": 0, "guestWins": 0, "roundNumber": 1,
             "result": NSNull(),
             "createdAt": FieldValue.serverTimestamp(), "updatedAt": FieldValue.serverTimestamp(),
@@ -88,12 +91,17 @@ final class MultiplayerService: ObservableObject {
         ]
     }
 
+    /// Claims/enters a room. `myTopIndex` is only written when actually claiming an open room as
+    /// guest — reconnecting to a room I already belong to never overwrites a pick I already made.
+    /// The returned data always reflects the final, merged room doc so the caller can start the
+    /// battle immediately without waiting on a listener round-trip.
     @discardableResult
-    private func enterRoom(code: String, data: [String: Any]) async throws -> String {
+    private func enterRoom(code: String, data: [String: Any], myTopIndex: Int) async throws -> [String: Any] {
         let uid = myUid!
         let hostUid = data["hostUid"] as? String
         let guestUid = data["guestUid"] as? String
         let status = data["status"] as? String
+        var finalData = data
 
         if hostUid == uid {
             role = "host"
@@ -101,22 +109,24 @@ final class MultiplayerService: ObservableObject {
             role = "guest"
         } else if guestUid == nil {
             if status == "finished" { throw MPError.roomFinished }
+            let guestFields: [String: Any] = [
+                "guestUid": uid, "status": "active", "guestTopIndex": myTopIndex,
+                "guestPresence": ["online": true, "lastSeen": FieldValue.serverTimestamp()],
+                "updatedAt": FieldValue.serverTimestamp(),
+            ]
             do {
-                try await db().collection(roomsCollection).document(code).updateData([
-                    "guestUid": uid, "status": "active",
-                    "guestPresence": ["online": true, "lastSeen": FieldValue.serverTimestamp()],
-                    "updatedAt": FieldValue.serverTimestamp(),
-                ])
+                try await db().collection(roomsCollection).document(code).updateData(guestFields)
             } catch {
                 throw MPError.roomFull
             }
             role = "guest"
+            finalData.merge(guestFields) { _, new in new }
         } else {
             throw MPError.roomFull
         }
 
         roomCode = code
-        sawGuest = guestUid != nil || role == "guest"
+        sawGuest = finalData["guestUid"] != nil || role == "guest"
         opponentOnline = false
         lastOppPresence = nil
         appliedActionIds = []
@@ -124,10 +134,10 @@ final class MultiplayerService: ObservableObject {
         attachStateListener()
         attachActionsListener()
         startHeartbeat()
-        return code
+        return finalData
     }
 
-    func createRoom() async throws -> String {
+    func createRoom(topIndex: Int) async throws -> MPRoomResult {
         guard Self.configured else { throw MPError.notConfigured }
         let uid = try await ensureSignedIn()
         myUid = uid
@@ -135,15 +145,17 @@ final class MultiplayerService: ObservableObject {
             let code = randomCode()
             let ref = db().collection(roomsCollection).document(code)
             guard let existing = try? await ref.getDocument(), !existing.exists else { continue }
+            let roomDoc = freshRoomDoc(hostUid: uid, hostTopIndex: topIndex)
             do {
-                try await ref.setData(freshRoomDoc(hostUid: uid))
+                try await ref.setData(roomDoc)
             } catch { continue }
-            return try await joinRoom(code)
+            let data = try await enterRoom(code: code, data: roomDoc, myTopIndex: topIndex)
+            return MPRoomResult(code: code, isHost: true, data: data)
         }
         throw MPError.createFailed
     }
 
-    func joinRoom(_ code: String) async throws -> String {
+    func joinRoom(_ code: String, topIndex: Int) async throws -> [String: Any] {
         guard Self.configured else { throw MPError.notConfigured }
         let uid = try await ensureSignedIn()
         myUid = uid
@@ -151,13 +163,13 @@ final class MultiplayerService: ObservableObject {
         guard let snap = try? await ref.getDocument(), snap.exists, let data = snap.data() else {
             throw MPError.roomNotFound
         }
-        return try await enterRoom(code: code, data: data)
+        return try await enterRoom(code: code, data: data, myTopIndex: topIndex)
     }
 
     /// Joins (or claims/recycles) the first available room in the fixed public lobby pool, so two
     /// people can play without coordinating a code: whoever arrives first waits as host, whoever
     /// arrives second joins immediately as guest and the match starts right away.
-    func quickPlay() async throws -> MPQuickPlayResult {
+    func quickPlay(topIndex: Int) async throws -> MPRoomResult {
         guard Self.configured else { throw MPError.notConfigured }
         let uid = try await ensureSignedIn()
         myUid = uid
@@ -167,30 +179,32 @@ final class MultiplayerService: ObservableObject {
             let data: [String: Any]? = (snap?.exists == true) ? snap?.data() : nil
 
             if data == nil || (data?["status"] as? String) == "finished" {
+                let roomDoc = freshRoomDoc(hostUid: uid, hostTopIndex: topIndex)
                 do {
-                    try await ref.setData(freshRoomDoc(hostUid: uid))
+                    try await ref.setData(roomDoc)
                 } catch { continue } // someone else claimed/recycled this slot first — try the next one
-                try await enterRoom(code: code, data: freshRoomDoc(hostUid: uid))
-                return MPQuickPlayResult(code: code, isHost: true)
+                let finalData = try await enterRoom(code: code, data: roomDoc, myTopIndex: topIndex)
+                return MPRoomResult(code: code, isHost: true, data: finalData)
             }
             if let data, (data["hostUid"] as? String) == uid || (data["guestUid"] as? String) == uid {
-                try await enterRoom(code: code, data: data) // reconnecting to my own quick-play game
-                return MPQuickPlayResult(code: code, isHost: role == "host")
+                let finalData = try await enterRoom(code: code, data: data, myTopIndex: topIndex) // reconnecting to my own quick-play game
+                return MPRoomResult(code: code, isHost: role == "host", data: finalData)
             }
             if let data, (data["status"] as? String) == "waiting", (data["guestUid"] as? String) == nil {
                 do {
-                    try await enterRoom(code: code, data: data)
+                    let finalData = try await enterRoom(code: code, data: data, myTopIndex: topIndex)
+                    return MPRoomResult(code: code, isHost: false, data: finalData)
                 } catch { continue }
-                return MPQuickPlayResult(code: code, isHost: false)
             }
             // Occupied by two other players — try reclaiming it in case it's actually an
             // abandoned game. The security rules are the real arbiter: this write only
             // succeeds if both presences are genuinely stale.
+            let roomDoc = freshRoomDoc(hostUid: uid, hostTopIndex: topIndex)
             do {
-                try await ref.setData(freshRoomDoc(hostUid: uid))
+                try await ref.setData(roomDoc)
             } catch { continue } // still genuinely occupied — try the next pool slot
-            try await enterRoom(code: code, data: freshRoomDoc(hostUid: uid))
-            return MPQuickPlayResult(code: code, isHost: true)
+            let finalData = try await enterRoom(code: code, data: roomDoc, myTopIndex: topIndex)
+            return MPRoomResult(code: code, isHost: true, data: finalData)
         }
         throw MPError.lobbyFull
     }
