@@ -443,10 +443,9 @@ extension GameScene {
         guard player != nil, cpu != nil else { return }
         if type == "launch" {
             guard !cpu.launched else { return }
-            let origin = CGPoint(x: mpDouble(payload, "originX"), y: mpDouble(payload, "originY"))
-            let direction = CGVector(dx: mpDouble(payload, "dirX"), dy: mpDouble(payload, "dirY"))
+            let direction = CGVector(dx: mpDouble(payload, "dirX"), dy: -mpDouble(payload, "dirY"))
             let power = mpDouble(payload, "power")
-            cpu.launch(from: origin, direction: direction, power: power)
+            cpu.launch(from: cpuLaunchOrigin, direction: direction, power: power)
             cpuNode.playLaunchPulse()
             SoundEngine.shared.playLaunch()
             checkOnlineBothLaunched()
