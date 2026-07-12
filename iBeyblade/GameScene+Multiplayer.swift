@@ -155,17 +155,21 @@ extension GameScene {
         for dot in pageDots { dot.isHidden = hidden }
     }
 
-    /// Toggles between the single "TAP TO START" button (every other mode) and the Create/Join/
-    /// Quick Play trio (Online mode, before committing to a room).
-    private func showLobbyActionRow(_ show: Bool) {
-        lobbyCreateBg?.isHidden = !show
-        lobbyCreateLabel?.isHidden = !show
-        lobbyJoinBg?.isHidden = !show
-        lobbyJoinLabel?.isHidden = !show
-        lobbyQuickBg?.isHidden = !show
-        lobbyQuickLabel?.isHidden = !show
-        buttons.first(where: { $0.id == "start-tap" })?.node.isHidden = show
-        startLabel?.isHidden = show
+    /// Shows/hides the Create/Join/Quick Play trio, independent of the single Start button — the
+    /// two rows occupy the same slot but their visibility isn't always a simple toggle (the
+    /// waiting screen needs both hidden at once, not one swapped in for the other).
+    private func setLobbyActionRowHidden(_ hidden: Bool) {
+        lobbyCreateBg?.isHidden = hidden
+        lobbyCreateLabel?.isHidden = hidden
+        lobbyJoinBg?.isHidden = hidden
+        lobbyJoinLabel?.isHidden = hidden
+        lobbyQuickBg?.isHidden = hidden
+        lobbyQuickLabel?.isHidden = hidden
+    }
+
+    private func setStartButtonHidden(_ hidden: Bool) {
+        buttons.first(where: { $0.id == "start-tap" })?.node.isHidden = hidden
+        startLabel?.isHidden = hidden
     }
 
     func resetLobbyUI() {
@@ -173,22 +177,27 @@ extension GameScene {
         mpClearIdleStatus()
         lobbyStatusLabel?.isHidden = true
         setTopPickerHidden(false)
-        showLobbyActionRow(true)
+        setLobbyActionRowHidden(false)
+        setStartButtonHidden(true)
     }
 
     /// Called whenever leaving Online mode (switching to vs CPU/vs Player, or back to the menu) —
     /// restores the normal single Start button and hides any lobby-specific UI.
     func hideLobbyUI() {
-        showLobbyActionRow(false)
+        setLobbyActionRowHidden(true)
+        setStartButtonHidden(false)
         lobbyPanel?.isHidden = true
         lobbyStatusLabel?.isHidden = true
     }
 
     /// Host-only: shown right after Create Room / Quick Play — the host's top was already
     /// submitted with the room, so there's nothing left to pick, just wait for someone to join.
+    /// Both the lobby action row AND the single Start button stay hidden here — this is the one
+    /// state where neither row applies.
     private func mpShowWaiting(code: String) {
         setTopPickerHidden(true)
-        showLobbyActionRow(false)
+        setLobbyActionRowHidden(true)
+        setStartButtonHidden(true)
         lobbyStatusLabel?.isHidden = true
         lobbyPanel?.isHidden = false
         lobbyCodeLabel?.text = code
