@@ -287,7 +287,7 @@ final class GameScene: SKScene {
         topSafeInset = view?.safeAreaInsets.top ?? 0
         bottomSafeInset = view?.safeAreaInsets.bottom ?? 0
 
-        let hudHeight: CGFloat = 96 + topSafeInset
+        let hudHeight: CGFloat = 112 + topSafeInset
         let controlsHeight: CGFloat = 120 + bottomSafeInset
         let sideMargin: CGFloat = 24
         let availableW = size.width - sideMargin * 2

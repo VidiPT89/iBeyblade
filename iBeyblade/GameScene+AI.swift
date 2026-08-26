@@ -1,6 +1,6 @@
 import SpriteKit
 
-let baseLaunchSpeed: CGFloat = 260
+let baseLaunchSpeed: CGFloat = 300
 
 /// CPU opponent behavior: launch aim/power tuned by difficulty, plus
 /// periodic Special Move usage that leans harder when the CPU is behind.

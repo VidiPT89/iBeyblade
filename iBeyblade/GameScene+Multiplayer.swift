@@ -223,8 +223,10 @@ extension GameScene {
     }
 
     private func mpShowIdleError(_ error: Error) {
-        lobbyStatusLabel?.text = mpErrorMessage(error)
+        let message = mpErrorMessage(error)
+        lobbyStatusLabel?.text = message
         lobbyStatusLabel?.isHidden = false
+        UIAccessibility.post(notification: .announcement, argument: message)
     }
 
     private func mpClearIdleStatus() {

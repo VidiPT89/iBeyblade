@@ -119,18 +119,18 @@ extension GameScene {
         hud.roundLabel.position = CGPoint(x: size.width / 2, y: topY - 4)
         hud.suddenDeathLabel.position = CGPoint(x: size.width / 2, y: topY - 22)
 
-        hud.langButton.position = CGPoint(x: size.width / 2 - 84, y: size.height - topSafeInset - 60)
+        hud.langButton.position = CGPoint(x: size.width / 2 - 84, y: size.height - topSafeInset - 80)
         hud.langHit.position = hud.langButton.position
-        hud.pauseButton.position = CGPoint(x: size.width / 2, y: size.height - topSafeInset - 60)
+        hud.pauseButton.position = CGPoint(x: size.width / 2, y: size.height - topSafeInset - 80)
         hud.pauseLabel.position = hud.pauseButton.position
-        hud.homeButton.position = CGPoint(x: size.width / 2 + 84, y: size.height - topSafeInset - 60)
+        hud.homeButton.position = CGPoint(x: size.width / 2 + 84, y: size.height - topSafeInset - 80)
         hud.homeLabel.position = hud.homeButton.position
 
         hud.boostButton.position = CGPoint(x: size.width - 60, y: 60 + bottomSafeInset)
         hud.boostLabel.position = CGPoint(x: hud.boostButton.position.x, y: hud.boostButton.position.y + 6)
         hud.boostChargesLabel.position = CGPoint(x: hud.boostButton.position.x, y: hud.boostButton.position.y - 12)
 
-        hud.boostButton2.position = CGPoint(x: size.width - 60, y: size.height - topSafeInset - 110)
+        hud.boostButton2.position = CGPoint(x: size.width - 60, y: size.height - topSafeInset - 144)
         hud.boostLabel2.position = CGPoint(x: hud.boostButton2.position.x, y: hud.boostButton2.position.y + 6)
         hud.boostChargesLabel2.position = CGPoint(x: hud.boostButton2.position.x, y: hud.boostButton2.position.y - 12)
     }
@@ -624,7 +624,7 @@ extension GameScene {
 
     func layoutLaunchOverlay(size: CGSize) {
         pullHintLabel?.position = CGPoint(x: size.width / 2, y: bottomSafeInset + 90)
-        pullHintLabel2?.position = CGPoint(x: size.width / 2, y: size.height - topSafeInset - 90)
+        pullHintLabel2?.position = CGPoint(x: size.width / 2, y: size.height - topSafeInset - 112)
     }
 
     func prepareNewMatch() {
@@ -765,6 +765,7 @@ extension GameScene {
         specialBanner?.removeFromParent()
         let label = SKLabelNode(fontNamed: "Menlo-Bold")
         label.text = L.spiritRising(entity.preset.spiritName)
+        UIAccessibility.post(notification: .announcement, argument: label.text)
         label.fontSize = 20
         label.fontColor = SKColor(hex: entity.preset.glowHex)
         label.position = CGPoint(x: arenaCenter.x, y: arenaCenter.y)
